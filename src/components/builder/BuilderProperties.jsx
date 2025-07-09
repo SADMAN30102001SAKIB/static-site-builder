@@ -1000,36 +1000,6 @@ const PropertyEditors = {
             </span>
           </div>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Button Text
-          </label>
-          <input
-            type="text"
-            value={buttonText || ""}
-            onChange={e =>
-              onChange({ ...properties, buttonText: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
-            placeholder="Get Started"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Button URL
-          </label>
-          <input
-            type="text"
-            value={buttonUrl || ""}
-            onChange={e =>
-              onChange({ ...properties, buttonUrl: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
-            placeholder="https://example.com"
-          />
-        </div>
       </div>
     );
   },
