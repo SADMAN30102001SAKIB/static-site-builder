@@ -2,34 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-// Custom hook for debounced updates
-const useDebouncedUpdate = (callback, delay = 1000) => {
-  const timeoutRef = useRef(null);
-
-  const debouncedCallback = useCallback(
-    (...args) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      timeoutRef.current = setTimeout(() => {
-        callback(...args);
-      }, delay);
-    },
-    [callback, delay],
-  );
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  return debouncedCallback;
-};
-
 // Component property editor based on component type
 const PropertyEditors = {
   heading: ({ properties, onChange }) => {
@@ -53,9 +25,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={text || ""}
-            onChange={e =>
-              onChange({ ...properties, text: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, text: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
           />
         </div>
@@ -207,9 +177,7 @@ const PropertyEditors = {
           </label>
           <textarea
             value={text || ""}
-            onChange={e =>
-              onChange({ ...properties, text: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, text: e.target.value })}
             rows="4"
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
           />
@@ -264,9 +232,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={src || ""}
-            onChange={e =>
-              onChange({ ...properties, src: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, src: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://example.com/image.jpg"
           />
@@ -279,9 +245,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={alt || ""}
-            onChange={e =>
-              onChange({ ...properties, alt: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, alt: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Image description"
           />
@@ -395,9 +359,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={link || ""}
-            onChange={e =>
-              onChange({ ...properties, link: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, link: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://example.com (optional)"
           />
@@ -428,9 +390,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={text || ""}
-            onChange={e =>
-              onChange({ ...properties, text: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, text: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
           />
         </div>
@@ -442,9 +402,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={url || "#"}
-            onChange={e =>
-              onChange({ ...properties, url: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, url: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://example.com"
           />
@@ -719,9 +677,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={label || ""}
-            onChange={e =>
-              onChange({ ...properties, label: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, label: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Input Label"
           />
@@ -735,7 +691,7 @@ const PropertyEditors = {
             type="text"
             value={placeholder || ""}
             onChange={e =>
-              onChange({ ...properties, placeholder: e.target.value }, true)
+              onChange({ ...properties, placeholder: e.target.value })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Enter placeholder text"
@@ -771,9 +727,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={label || ""}
-            onChange={e =>
-              onChange({ ...properties, label: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, label: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Textarea Label"
           />
@@ -787,7 +741,7 @@ const PropertyEditors = {
             type="text"
             value={placeholder || ""}
             onChange={e =>
-              onChange({ ...properties, placeholder: e.target.value }, true)
+              onChange({ ...properties, placeholder: e.target.value })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Enter placeholder text"
@@ -955,9 +909,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={title || ""}
-            onChange={e =>
-              onChange({ ...properties, title: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, title: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Hero Title"
           />
@@ -970,7 +922,7 @@ const PropertyEditors = {
           <textarea
             value={subtitle || ""}
             onChange={e =>
-              onChange({ ...properties, subtitle: e.target.value }, true)
+              onChange({ ...properties, subtitle: e.target.value })
             }
             rows="3"
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
@@ -986,7 +938,7 @@ const PropertyEditors = {
             type="text"
             value={backgroundImage || ""}
             onChange={e =>
-              onChange({ ...properties, backgroundImage: e.target.value }, true)
+              onChange({ ...properties, backgroundImage: e.target.value })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://example.com/image.jpg"
@@ -1057,7 +1009,7 @@ const PropertyEditors = {
             type="text"
             value={buttonText || ""}
             onChange={e =>
-              onChange({ ...properties, buttonText: e.target.value }, true)
+              onChange({ ...properties, buttonText: e.target.value })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Get Started"
@@ -1072,7 +1024,7 @@ const PropertyEditors = {
             type="text"
             value={buttonUrl || ""}
             onChange={e =>
-              onChange({ ...properties, buttonUrl: e.target.value }, true)
+              onChange({ ...properties, buttonUrl: e.target.value })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://example.com"
@@ -1094,9 +1046,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={title || ""}
-            onChange={e =>
-              onChange({ ...properties, title: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, title: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Our Features"
           />
@@ -1165,9 +1115,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={url || ""}
-            onChange={e =>
-              onChange({ ...properties, url: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, url: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://www.youtube.com/watch?v=... or video file URL"
           />
@@ -1371,9 +1319,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={src || ""}
-            onChange={e =>
-              onChange({ ...properties, src: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, src: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://example.com/logo.png"
           />
@@ -1386,9 +1332,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={alt || ""}
-            onChange={e =>
-              onChange({ ...properties, alt: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, alt: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="Company Logo"
           />
@@ -1443,9 +1387,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={link || ""}
-            onChange={e =>
-              onChange({ ...properties, link: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, link: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="https://yourwebsite.com"
           />
@@ -1466,9 +1408,7 @@ const PropertyEditors = {
           <input
             type="text"
             value={label || ""}
-            onChange={e =>
-              onChange({ ...properties, label: e.target.value }, true)
-            }
+            onChange={e => onChange({ ...properties, label: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
             placeholder="I agree to the terms"
           />
@@ -1498,48 +1438,49 @@ export default function BuilderProperties({
   onDeleteComponent,
 }) {
   const [localProperties, setLocalProperties] = useState({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Update local properties when selected component changes
   useEffect(() => {
     if (component) {
       setLocalProperties(component.properties || {});
+      setHasUnsavedChanges(false);
     } else {
       setLocalProperties({});
+      setHasUnsavedChanges(false);
     }
   }, [component]);
 
-  // Debounced save function - for text inputs and other frequently changing values
-  const debouncedSave = useDebouncedUpdate((componentId, properties) => {
-    try {
-      onUpdateComponent(componentId, { properties });
-    } catch (error) {
-      console.error("Error updating component properties:", error);
-      alert("Failed to update component properties. Please try again.");
+  // Save function
+  const saveChanges = useCallback(() => {
+    if (component && hasUnsavedChanges) {
+      try {
+        onUpdateComponent(component.id, { properties: localProperties });
+        setHasUnsavedChanges(false);
+      } catch (error) {
+        console.error("Error updating component properties:", error);
+        alert("Failed to update component properties. Please try again.");
+      }
     }
-  }, 1000); // 500ms delay
+  }, [component, localProperties, hasUnsavedChanges, onUpdateComponent]);
 
-  // Immediate save function - for non-text inputs like colors, dropdowns, buttons
-  const immediateSave = (componentId, properties) => {
-    try {
-      onUpdateComponent(componentId, { properties });
-    } catch (error) {
-      console.error("Error updating component properties:", error);
-      alert("Failed to update component properties. Please try again.");
-    }
-  };
+  // Handle Ctrl+S keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        saveChanges();
+      }
+    };
 
-  // Handle property changes with smart saving strategy
-  const handleChange = (newProperties, isTextInput = false) => {
-    // Always update local state immediately for responsive UI
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [saveChanges]);
+
+  // Handle property changes - only update local state
+  const handleChange = newProperties => {
     setLocalProperties(newProperties);
-
-    // Use debounced save for text inputs to prevent save-on-every-keystroke
-    // Use immediate save for other inputs like colors, dropdowns, buttons
-    if (isTextInput) {
-      debouncedSave(component.id, newProperties);
-    } else {
-      immediateSave(component.id, newProperties);
-    }
+    setHasUnsavedChanges(true);
   };
 
   // Get appropriate property editor for component type
@@ -1590,27 +1531,53 @@ export default function BuilderProperties({
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Edit {component.type} component
+            {hasUnsavedChanges && (
+              <span className="ml-2 text-orange-500 dark:text-orange-400">
+                • Unsaved changes
+              </span>
+            )}
           </p>
         </div>
-        <button
-          onClick={() => onDeleteComponent(component.id)}
-          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
-          title="Delete component">
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
-        </button>
+        <div className="flex items-center space-x-2">
+          {hasUnsavedChanges && (
+            <button
+              onClick={saveChanges}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+              title="Save changes (Ctrl+S)">
+              Save
+            </button>
+          )}
+          <button
+            onClick={() => onDeleteComponent(component.id)}
+            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
+            title="Delete component">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
       <div className="flex-1 overflow-auto p-4">{getPropertyEditor()}</div>
+      {hasUnsavedChanges && (
+        <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Press{" "}
+            <kbd className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded">
+              Ctrl+S
+            </kbd>{" "}
+            to save changes
+          </p>
+        </div>
+      )}
     </div>
   );
 }

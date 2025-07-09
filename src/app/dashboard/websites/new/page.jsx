@@ -43,7 +43,7 @@ export default function NewWebsite() {
 
       // Redirect to the builder page with the new website ID
       // After creating website, redirect to create a page first
-      router.push(`/dashboard/websites/${data.website.id}/pages/new`);
+      router.push(`/dashboard/websites/${data.website.id}/pages`);
     } catch (err) {
       setError(err.message);
     } finally {
