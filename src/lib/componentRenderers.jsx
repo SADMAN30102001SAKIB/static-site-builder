@@ -1,16 +1,73 @@
-"use client";
+// Shared React component renderers for both builder and preview/site
+// These are the actual JSX components used in the builder
 
-import { useRef } from "react";
-import { useDrag, useDrop } from "react-dnd";
-import componentRenderers, {
-  defaultRenderer,
-} from "../../lib/componentRenderers";
+const componentRenderers = {
+  heading: ({ properties }) => {
+    const { text, level, textAlign, color } = properties;
+    const Tag = level || "h2";
 
-// For the builder, we need to modify the renderers to remove the dashed borders
-// that are only used for the builder interface
-const builderComponentRenderers = {
-  ...componentRenderers,
-  // These components need special builder styling with dashed borders
+    return (
+      <Tag
+        style={{
+          textAlign: textAlign || "left",
+          color: color || "inherit",
+        }}>
+        {text || "Heading"}
+      </Tag>
+    );
+  },
+
+  paragraph: ({ properties }) => {
+    const { text, textAlign, color } = properties;
+
+    return (
+      <p
+        style={{
+          textAlign: textAlign || "left",
+          color: color || "inherit",
+        }}>
+        {text || "Paragraph text"}
+      </p>
+    );
+  },
+
+  image: ({ properties }) => {
+    const { src, alt, width } = properties;
+
+    return (
+      <img
+        src={src || "https://via.placeholder.com/300x200"}
+        alt={alt || "Image"}
+        style={{
+          width: width || "100%",
+          maxWidth: "100%",
+        }}
+      />
+    );
+  },
+
+  button: ({ properties }) => {
+    const { text, url, backgroundColor, textColor, size } = properties;
+
+    const sizeClasses = {
+      small: "px-2 py-1 text-sm",
+      medium: "px-4 py-2",
+      large: "px-6 py-3 text-lg",
+    };
+
+    return (
+      <button
+        style={{
+          backgroundColor: backgroundColor || "#3b82f6",
+          color: textColor || "white",
+        }}
+        className={`rounded ${sizeClasses[size || "medium"]} font-medium`}
+        onClick={e => e.preventDefault()}>
+        {text || "Button"}
+      </button>
+    );
+  },
+
   container: ({ properties, children }) => {
     const { width, backgroundColor, padding } = properties;
 
@@ -20,8 +77,160 @@ const builderComponentRenderers = {
           width: width || "100%",
           backgroundColor: backgroundColor || "transparent",
           padding: padding || "20px",
+        }}>
+        {children}
+      </div>
+    );
+  },
+
+  divider: ({ properties }) => {
+    const { style, color, width, thickness } = properties;
+
+    const borderStyle = style || "solid";
+
+    return (
+      <hr
+        style={{
+          borderStyle,
+          borderColor: color || "#e5e7eb",
+          width: width || "100%",
+          borderWidth: thickness || "1px",
         }}
-        className="border border-dashed border-gray-300 dark:border-gray-600">
+      />
+    );
+  },
+
+  input: ({ properties }) => {
+    const { placeholder, label, required } = properties;
+
+    return (
+      <div>
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {label} {required && <span className="text-red-500">*</span>}
+          </label>
+        )}
+        <input
+          type="text"
+          placeholder={placeholder || "Enter text..."}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] bg-white text-gray-900"
+          readOnly
+        />
+      </div>
+    );
+  },
+
+  textarea: ({ properties }) => {
+    const { placeholder, label, required, rows } = properties;
+
+    return (
+      <div>
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {label} {required && <span className="text-red-500">*</span>}
+          </label>
+        )}
+        <textarea
+          placeholder={placeholder || "Enter text..."}
+          rows={rows || 4}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] bg-white text-gray-900"
+          readOnly
+        />
+      </div>
+    );
+  },
+
+  checkbox: ({ properties }) => {
+    const { label } = properties;
+
+    return (
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          className="h-4 w-4 text-[rgb(var(--primary))] border-gray-300 rounded focus:ring-[rgb(var(--primary))]"
+          readOnly
+        />
+        <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+          {label || "Checkbox label"}
+        </label>
+      </div>
+    );
+  },
+
+  video: ({ properties }) => {
+    const { url, width, height, autoplay, controls } = properties;
+
+    return (
+      <div className="relative" style={{ width: width || "100%" }}>
+        {url && url.trim() !== "" ? (
+          <video
+            src={url}
+            width={width || "100%"}
+            height={height || "auto"}
+            controls={controls !== false}
+            autoPlay={autoplay || false}
+            className="w-full rounded">
+            Your browser does not support the video tag.
+          </video>
+        ) : (
+          <div
+            className="flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded"
+            style={{
+              width: width || "100%",
+              height: height || "300px",
+            }}>
+            <div className="text-center text-gray-500">
+              <svg
+                className="w-12 h-12 mx-auto mb-2"
+                fill="currentColor"
+                viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <p className="text-sm">Video Player</p>
+              <p className="text-xs mt-1 opacity-70">No video source</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  },
+
+  icon: ({ properties }) => {
+    const { name, size, color } = properties;
+
+    // Placeholder for icon, would need a proper icon library integration
+    return (
+      <div
+        className="flex items-center justify-center"
+        style={{
+          fontSize: size || "24px",
+          color: color || "currentColor",
+          width: size || "24px",
+          height: size || "24px",
+        }}>
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      </div>
+    );
+  },
+
+  columns: ({ properties, children }) => {
+    const { columns, gap } = properties;
+    const colCount = columns || 2;
+
+    return (
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${colCount}, 1fr)`,
+          gap: gap || "20px",
+        }}>
         {children}
       </div>
     );
@@ -36,23 +245,92 @@ const builderComponentRenderers = {
           height: height || "40px",
           width: "100%",
         }}
-        className="border border-dashed border-gray-300 dark:border-gray-600"
       />
     );
   },
 
-  columns: ({ properties, children }) => {
-    const { columns, gap } = properties;
-    const colCount = columns || 2;
+  select: ({ properties }) => {
+    const { label, options, required } = properties;
+    const selectOptions = options || ["Option 1", "Option 2", "Option 3"];
 
     return (
-      <div
-        className="grid border border-dashed border-gray-300 dark:border-gray-600"
-        style={{
-          gridTemplateColumns: `repeat(${colCount}, 1fr)`,
-          gap: gap || "20px",
-        }}>
-        {children}
+      <div>
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {label} {required && <span className="text-red-500">*</span>}
+          </label>
+        )}
+        <select className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] bg-white text-gray-900">
+          {selectOptions.map((option, index) => (
+            <option key={index} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  },
+
+  contactForm: ({ properties }) => {
+    const { title, submitButtonText, showNameField, showSubjectField } =
+      properties;
+
+    return (
+      <div className="p-6 bg-gray-800 rounded-lg shadow-sm border border-gray-700">
+        {title && (
+          <h3 className="text-lg font-medium mb-4">{title || "Contact Us"}</h3>
+        )}
+        <form className="space-y-4">
+          {showNameField !== false && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
+                readOnly
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Email <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
+              readOnly
+            />
+          </div>
+          {showSubjectField !== false && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Subject
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
+                readOnly
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Message <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows="4"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
+              readOnly
+            />
+          </div>
+          <button
+            type="button"
+            className="px-4 py-2 bg-[rgb(var(--primary))] text-white rounded-md">
+            {submitButtonText || "Send Message"}
+          </button>
+        </form>
       </div>
     );
   },
@@ -63,7 +341,7 @@ const builderComponentRenderers = {
 
     return (
       <div
-        className="relative flex items-center border border-dashed border-gray-300 dark:border-gray-600 overflow-hidden rounded-lg"
+        className="relative flex items-center overflow-hidden rounded-lg"
         style={{
           backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
           backgroundSize: "cover",
@@ -96,7 +374,7 @@ const builderComponentRenderers = {
     const count = featureCount || 3;
 
     return (
-      <div className="py-12 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+      <div className="py-12 rounded-lg">
         {title && (
           <h2 className="text-2xl font-bold text-center mb-8">
             {title || "Our Features"}
@@ -141,7 +419,7 @@ const builderComponentRenderers = {
     const count = testimonialCount || 3;
 
     return (
-      <div className="py-12 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+      <div className="py-12 rounded-lg">
         <h2 className="text-2xl font-bold text-center mb-8">
           What Our Clients Say
         </h2>
@@ -153,7 +431,7 @@ const builderComponentRenderers = {
           {Array.from({ length: count }).map((_, i) => (
             <div
               key={i}
-              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+              className="bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
               <div className="flex items-center mb-4">
                 <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 mr-3"></div>
                 <div>
@@ -184,7 +462,7 @@ const builderComponentRenderers = {
     const planNames = ["Basic", "Standard", "Premium"];
 
     return (
-      <div className="py-12 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+      <div className="py-12 rounded-lg">
         <h2 className="text-2xl font-bold text-center mb-8">Pricing Plans</h2>
         <div
           className={`grid grid-cols-1 md:grid-cols-${Math.min(
@@ -194,10 +472,10 @@ const builderComponentRenderers = {
           {Array.from({ length: count }).map((_, i) => (
             <div
               key={i}
-              className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden ${
+              className={`bg-gray-800 rounded-lg shadow-md overflow-hidden border ${
                 i === 1
                   ? "border-2 border-[rgb(var(--primary))]"
-                  : "border border-gray-200 dark:border-gray-700"
+                  : "border border-gray-700"
               }`}>
               <div
                 className={`p-6 ${
@@ -268,7 +546,7 @@ const builderComponentRenderers = {
     const imageCount = images?.length || 6;
 
     return (
-      <div className="py-8 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+      <div className="py-8">
         <div
           className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${colCount} gap-4 p-4`}>
           {Array.from({ length: imageCount }).map((_, i) => (
@@ -294,9 +572,8 @@ const builderComponentRenderers = {
       <nav
         className={`
           w-full px-4 py-3 flex items-center justify-between 
-          ${transparent ? "bg-transparent" : "bg-white dark:bg-gray-800"} 
+          ${transparent ? "bg-transparent" : "bg-gray-800 shadow-sm"} 
           ${sticky ? "sticky top-0 z-10" : ""}
-          border border-dashed border-gray-300 dark:border-gray-600
         `}>
         <div className="flex items-center">
           <span className="text-xl font-bold">{brand || "Brand"}</span>
@@ -340,7 +617,7 @@ const builderComponentRenderers = {
     const colCount = columns || 4;
 
     return (
-      <footer className="bg-gray-100 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+      <footer className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className={`grid grid-cols-1 md:grid-cols-${colCount} gap-8`}>
             <div>
@@ -383,7 +660,7 @@ const builderComponentRenderers = {
                   <input
                     type="email"
                     placeholder="Your email"
-                    className="px-3 py-2 rounded-l-md w-full"
+                    className="px-3 py-2 rounded-l-md w-full border border-gray-300 bg-white text-gray-900"
                   />
                   <button className="bg-[rgb(var(--primary))] text-white px-4 py-2 rounded-r-md">
                     Subscribe
@@ -422,66 +699,31 @@ const builderComponentRenderers = {
     );
   },
 
-  contactForm: ({ properties }) => {
-    const { title, submitButtonText, showNameField, showSubjectField } =
-      properties;
+  socialLinks: ({ properties }) => {
+    const { platforms, layout, iconSize } = properties;
+    const social = platforms || [
+      "facebook",
+      "twitter",
+      "instagram",
+      "linkedin",
+    ];
 
     return (
-      <div className="p-6 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-        {title && (
-          <h3 className="text-lg font-medium mb-4">{title || "Contact Us"}</h3>
-        )}
-        <form className="space-y-4">
-          {showNameField !== false && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
-                readOnly
-              />
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
-              readOnly
-            />
-          </div>
-          {showSubjectField !== false && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Subject
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
-                readOnly
-              />
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Message <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              rows="4"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
-              readOnly
-            />
-          </div>
-          <button
-            type="button"
-            className="px-4 py-2 bg-[rgb(var(--primary))] text-white rounded-md">
-            {submitButtonText || "Send Message"}
-          </button>
-        </form>
+      <div
+        className={`flex ${
+          layout === "vertical" ? "flex-col space-y-3" : "space-x-3"
+        }`}>
+        {social.map((platform, i) => (
+          <a
+            key={i}
+            href="#"
+            className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]"
+            style={{ fontSize: iconSize || "24px" }}>
+            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z" />
+            </svg>
+          </a>
+        ))}
       </div>
     );
   },
@@ -491,7 +733,7 @@ const builderComponentRenderers = {
 
     return (
       <div
-        className="p-8 rounded-lg border border-dashed border-gray-300 dark:border-gray-600"
+        className="p-8 rounded-lg shadow-lg"
         style={{
           backgroundColor: backgroundColor || "rgb(var(--primary))",
           color: "#fff",
@@ -503,96 +745,47 @@ const builderComponentRenderers = {
         <p className="mb-6">
           {subtitle || "Join thousands of satisfied customers today!"}
         </p>
-        <button className="bg-white text-[rgb(var(--primary))] px-6 py-2 rounded-md font-medium">
+        <button className="bg-white text-[rgb(var(--primary))] px-6 py-2 rounded-md font-medium border border-gray-200 hover:bg-gray-50">
           {buttonText || "Get Started"}
         </button>
       </div>
     );
   },
+
+  logo: ({ properties }) => {
+    const { src, alt, width, height, linkUrl } = properties;
+
+    const logoElement = (
+      <img
+        src={src || "https://via.placeholder.com/200x80?text=Logo"}
+        alt={alt || "Logo"}
+        style={{
+          width: width || "auto",
+          height: height || "60px",
+          maxWidth: "100%",
+          objectFit: "contain",
+        }}
+      />
+    );
+
+    // If linkUrl is provided, wrap in anchor tag
+    if (linkUrl) {
+      return (
+        <a href={linkUrl} className="inline-block">
+          {logoElement}
+        </a>
+      );
+    }
+
+    return logoElement;
+  },
 };
 
-export default function CanvasComponent({
-  component,
-  children,
-  isSelected,
-  onSelect,
-  onAddChild,
-  onMove,
-}) {
-  const ref = useRef(null);
+// Default renderer for unknown component types
+export const defaultRenderer = ({ type }) => (
+  <div className="p-4 border border-red-300 rounded bg-red-50 text-red-800">
+    Unknown component type: {type}
+  </div>
+);
 
-  // Setup drag source
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "CANVAS_COMPONENT",
-    item: { id: component.id, type: component.type },
-    collect: monitor => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }));
-
-  // Prevent dropping on invalid targets
-  const [{ isOver, canDrop }, drop] = useDrop(() => ({
-    accept: ["COMPONENT", "CANVAS_COMPONENT"],
-    drop: (item, monitor) => {
-      if (item.id === component.id) {
-        return; // Prevent self-drop
-      }
-
-      if (item.type && !item.id) {
-        const childrenCount = (children || []).length;
-        onAddChild(item.type, childrenCount);
-        return;
-      }
-
-      if (item.id) {
-        onMove(item.id, 0, component.id);
-        return;
-      }
-    },
-    collect: monitor => ({
-      isOver: !!monitor.isOver(),
-      canDrop: !!monitor.canDrop(),
-    }),
-  }));
-
-  // Highlight invalid drop areas
-  const dropClass = isOver && !canDrop ? "bg-red-50 dark:bg-red-900/10" : "";
-
-  // Apply drag and drop refs
-  drag(drop(ref));
-
-  // Get the appropriate renderer for this component type
-  const renderComponent =
-    builderComponentRenderers[component.type] || defaultRenderer;
-
-  // Handle clicks
-  const handleClick = e => {
-    e.stopPropagation();
-    onSelect();
-  };
-
-  return (
-    <div
-      ref={ref}
-      onClick={handleClick}
-      className={`relative mb-4 ${isDragging ? "opacity-50" : "opacity-100"} ${
-        isSelected ? "ring-2 ring-[rgb(var(--primary))]" : ""
-      } ${
-        isOver && canDrop ? "bg-blue-50 dark:bg-blue-900/10" : ""
-      } ${dropClass}`}
-      style={{ cursor: "move" }}>
-      {isSelected && (
-        <div className="absolute -top-3 -left-3 bg-[rgb(var(--primary))] text-white text-xs px-1.5 py-0.5 rounded-sm z-10">
-          {component.type}
-        </div>
-      )}
-
-      <div className={`${isSelected ? "pointer-events-none" : ""}`}>
-        {renderComponent({
-          properties: component.properties || {},
-          children,
-        })}
-      </div>
-    </div>
-  );
-}
+export default componentRenderers;

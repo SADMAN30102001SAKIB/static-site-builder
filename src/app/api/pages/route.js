@@ -1,62 +1,56 @@
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 // Get all pages for a website
 export async function GET(request) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    
+
     // Get the website ID from the query params
     const { searchParams } = new URL(request.url);
     const websiteId = searchParams.get("websiteId");
-    
+
     if (!websiteId) {
       return NextResponse.json(
         { message: "Website ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     // Verify the user owns the website
     const website = await prisma.website.findUnique({
       where: { id: websiteId },
     });
-    
+
     if (!website) {
       return NextResponse.json(
         { message: "Website not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     if (website.userId !== session.user.id) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
-    
+
     // Get all pages for the website
     const pages = await prisma.page.findMany({
       where: { websiteId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
-    
+
     return NextResponse.json({ pages });
   } catch (error) {
     console.error("Error fetching pages:", error);
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -65,58 +59,58 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    
+
     const { title, path, websiteId, isHomePage } = await request.json();
-    
+
+    // Normalize path to ensure it starts with exactly one /
+    const normalizedPath = `/${path.replace(/^\/+/, "")}`;
+
     // Validate required fields
-    if (!title || !path || !websiteId) {
+    if (!title || !normalizedPath || !websiteId) {
       return NextResponse.json(
-        { message: "Missing required fields: title, path, and websiteId are required" },
-        { status: 400 }
+        {
+          message:
+            "Missing required fields: title, path, and websiteId are required",
+        },
+        { status: 400 },
       );
     }
-    
+
     // Verify the user owns the website
     const website = await prisma.website.findUnique({
       where: { id: websiteId },
     });
-    
+
     if (!website) {
       return NextResponse.json(
         { message: "Website not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     if (website.userId !== session.user.id) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
-    
+
     // Check if a page with the same path already exists for this website
     const existingPage = await prisma.page.findFirst({
       where: {
         websiteId,
-        path,
+        path: normalizedPath,
       },
     });
-    
+
     if (existingPage) {
       return NextResponse.json(
         { message: "A page with this path already exists for this website" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     // If this is a home page, update any existing home page
     if (isHomePage) {
       await prisma.page.updateMany({
@@ -129,29 +123,29 @@ export async function POST(request) {
         },
       });
     }
-    
+
     // Create the page
     const page = await prisma.page.create({
       data: {
         title,
-        path,
+        path: normalizedPath,
         isHomePage: isHomePage || false,
         websiteId,
       },
     });
-    
+
     return NextResponse.json(
-      { 
+      {
         message: "Page created successfully",
-        page
+        page,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error creating page:", error);
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

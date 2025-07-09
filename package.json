@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.8.0",
@@ -16,6 +17,7 @@
     "@headlessui/react": "^2.2.0",
     "@prisma/client": "^6.5.0",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "next": "15.2.2",
     "next-auth": "^4.24.11",
     "prisma": "^6.5.0",

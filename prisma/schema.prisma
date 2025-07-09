@@ -1,16 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// User model for authentication
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -18,14 +14,14 @@ model User {
   emailVerified DateTime?
   password      String?
   image         String?
+  bio           String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  websites      Website[]
   accounts      Account[]
   sessions      Session[]
+  websites      Website[]
 }
 
-// NextAuth.js models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -39,8 +35,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -61,47 +56,45 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Website model to store website configurations
 model Website {
   id          String   @id @default(cuid())
-  name        String
+  name        String   @unique
   slug        String   @unique
   description String?
   published   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   pages       Page[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Page model to store pages within a website
 model Page {
   id          String      @id @default(cuid())
   title       String
   path        String
   description String?
   isHomePage  Boolean     @default(false)
+  published   Boolean     @default(false)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   websiteId   String
-  website     Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   components  Component[]
+  website     Website     @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@unique([websiteId, path])
 }
 
-// Component model to store components within a page
 model Component {
   id         String      @id @default(cuid())
-  type       String      // e.g., "heading", "paragraph", "image", "button", "container"
+  type       String
   position   Int         @default(0)
-  properties String?     // JSON string for component properties
+  properties String?
   pageId     String
-  page       Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
   parentId   String?
-  parent     Component?  @relation("ComponentToComponent", fields: [parentId], references: [id], onDelete: SetNull)
-  children   Component[] @relation("ComponentToComponent")
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  parent     Component?  @relation("ComponentToComponent", fields: [parentId], references: [id])
+  children   Component[] @relation("ComponentToComponent")
+  page       Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }
