@@ -806,20 +806,6 @@ const PropertyEditors = {
             </span>
           </div>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Background Color
-          </label>
-          <input
-            type="color"
-            value={backgroundColor || "#ffffff"}
-            onChange={e =>
-              onChange({ ...properties, backgroundColor: e.target.value })
-            }
-            className="w-full h-10 p-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
-          />
-        </div>
       </div>
     );
   },
@@ -1054,20 +1040,6 @@ const PropertyEditors = {
           <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             Show Icons
           </label>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Background Color
-          </label>
-          <input
-            type="color"
-            value={backgroundColor || "#ffffff"}
-            onChange={e =>
-              onChange({ ...properties, backgroundColor: e.target.value })
-            }
-            className="w-full h-10 p-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
-          />
         </div>
       </div>
     );
