@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Container from "@/components/ui/Container";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -9,6 +10,7 @@ import WebsiteCard from "@/components/dashboard/WebsiteCard";
 
 export default function WebsitesPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [websites, setWebsites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,8 +37,14 @@ export default function WebsitesPage() {
       }
     }
 
-    fetchWebsites();
-  }, []);
+    // Only fetch websites if the user is authenticated
+    if (session) {
+      fetchWebsites();
+    } else if (status !== "loading") {
+      // If not loading and no session, stop loading
+      setIsLoading(false);
+    }
+  }, [session, status]);
 
   const handleEditWebsite = async id => {
     // Find the first page for this website

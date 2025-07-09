@@ -1,35 +1,64 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
       <header className="w-full py-4 px-6 md:px-12 flex items-center justify-between bg-white dark:bg-gray-900 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="font-bold text-xl text-[rgb(var(--primary))]">WebsiteBuilder</div>
+          <div className="font-bold text-xl text-[rgb(var(--primary))]">
+            WebsiteBuilder
+          </div>
         </div>
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="#features" className="text-gray-600 dark:text-gray-300 hover:text-[rgb(var(--primary))]">
+          <Link
+            href="#features"
+            className="text-gray-600 dark:text-gray-300 hover:text-[rgb(var(--primary))]">
             Features
           </Link>
-          <Link href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-[rgb(var(--primary))]">
+          <Link
+            href="#pricing"
+            className="text-gray-600 dark:text-gray-300 hover:text-[rgb(var(--primary))]">
             Pricing
           </Link>
-          <Link href="#faq" className="text-gray-600 dark:text-gray-300 hover:text-[rgb(var(--primary))]">
+          <Link
+            href="#faq"
+            className="text-gray-600 dark:text-gray-300 hover:text-[rgb(var(--primary))]">
             FAQ
           </Link>
         </nav>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-[rgb(var(--primary))] font-medium hover:text-[rgb(var(--primary-light))]">
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className="bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] text-white px-4 py-2 rounded-md font-medium transition-colors"
-          >
-            Get Started
-          </Link>
+          {session ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="text-[rgb(var(--primary))] font-medium hover:text-[rgb(var(--primary-light))]">
+                Dashboard
+              </Link>
+              <Link
+                href="/dashboard/websites/new"
+                className="bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] text-white px-4 py-2 rounded-md font-medium transition-colors">
+                Create Website
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-[rgb(var(--primary))] font-medium hover:text-[rgb(var(--primary-light))]">
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                className="bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] text-white px-4 py-2 rounded-md font-medium transition-colors">
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -38,24 +67,42 @@ export default function Home() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-              Create beautiful websites <span className="text-[rgb(var(--primary))]">without code</span>
+              Create beautiful websites{" "}
+              <span className="text-[rgb(var(--primary))]">without code</span>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-              Our drag-and-drop website builder makes it easy for anyone to create professional-looking websites in minutes, no technical skills required.
+              Our drag-and-drop website builder makes it easy for anyone to
+              create professional-looking websites in minutes, no technical
+              skills required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/register"
-                className="bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] text-white px-6 py-3 rounded-md font-medium text-center transition-colors"
-              >
-                Start Building For Free
-              </Link>
-              <Link
-                href="#features"
-                className="border border-gray-300 dark:border-gray-700 px-6 py-3 rounded-md font-medium text-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                Learn More
-              </Link>
+              {session ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] text-white px-6 py-3 rounded-md font-medium text-center transition-colors">
+                    Go to Dashboard
+                  </Link>
+                  <Link
+                    href="/dashboard/websites/new"
+                    className="border border-gray-300 dark:border-gray-700 px-6 py-3 rounded-md font-medium text-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    Create New Website
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/register"
+                    className="bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] text-white px-6 py-3 rounded-md font-medium text-center transition-colors">
+                    Start Building For Free
+                  </Link>
+                  <Link
+                    href="#features"
+                    className="border border-gray-300 dark:border-gray-700 px-6 py-3 rounded-md font-medium text-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    Learn More
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           <div className="rounded-xl overflow-hidden shadow-2xl">
@@ -81,7 +128,8 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Powerful Features</h2>
             <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Everything you need to build beautiful websites without any technical knowledge.
+              Everything you need to build beautiful websites without any
+              technical knowledge.
             </p>
           </div>
 
@@ -93,8 +141,7 @@ export default function Home() {
                   className="h-6 w-6 text-[rgb(var(--primary))]"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                  stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -103,9 +150,12 @@ export default function Home() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Drag-and-Drop Editor</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Drag-and-Drop Editor
+              </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Create websites visually by dragging and dropping components exactly where you want them.
+                Create websites visually by dragging and dropping components
+                exactly where you want them.
               </p>
             </div>
 
@@ -116,8 +166,7 @@ export default function Home() {
                   className="h-6 w-6 text-purple-600 dark:text-purple-400"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                  stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -128,7 +177,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Advanced Styling</h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Customize colors, fonts, and layouts with an intuitive interface designed for non-designers.
+                Customize colors, fonts, and layouts with an intuitive interface
+                designed for non-designers.
               </p>
             </div>
 
@@ -139,8 +189,7 @@ export default function Home() {
                   className="h-6 w-6 text-[rgb(var(--secondary))]"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                  stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -151,7 +200,8 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Form Builder</h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Create custom forms to collect information, feedback, or leads from your website visitors.
+                Create custom forms to collect information, feedback, or leads
+                from your website visitors.
               </p>
             </div>
           </div>
@@ -161,15 +211,20 @@ export default function Home() {
       {/* Call to Action */}
       <section className="w-full py-16 px-6 md:px-12 bg-[rgb(var(--primary))] text-white">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to build your website?</h2>
+          <h2 className="text-3xl font-bold mb-6">
+            {session
+              ? "Ready to create your next website?"
+              : "Ready to build your website?"}
+          </h2>
           <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of users creating beautiful websites without writing a single line of code.
+            {session
+              ? "Continue building amazing websites with our powerful drag-and-drop editor."
+              : "Join thousands of users creating beautiful websites without writing a single line of code."}
           </p>
           <Link
-            href="/register"
-            className="bg-white text-[rgb(var(--primary))] hover:bg-gray-100 px-8 py-3 rounded-md font-semibold inline-block transition-colors"
-          >
-            Get Started For Free
+            href={session ? "/dashboard/websites/new" : "/register"}
+            className="bg-white text-[rgb(var(--primary))] hover:bg-gray-100 px-8 py-3 rounded-md font-semibold inline-block transition-colors">
+            {session ? "Create New Website" : "Get Started For Free"}
           </Link>
         </div>
       </section>
@@ -178,7 +233,9 @@ export default function Home() {
       <footer className="w-full py-12 px-6 md:px-12 bg-gray-100 dark:bg-gray-900 mt-auto">
         <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-8">
           <div>
-            <div className="font-bold text-xl text-[rgb(var(--primary))] mb-4">WebsiteBuilder</div>
+            <div className="font-bold text-xl text-[rgb(var(--primary))] mb-4">
+              WebsiteBuilder
+            </div>
             <p className="text-gray-600 dark:text-gray-400">
               The easiest way to build professional websites without code.
             </p>
@@ -187,17 +244,23 @@ export default function Home() {
             <h3 className="font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="#features" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#features"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="#pricing" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#pricing"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Templates
                 </Link>
               </li>
@@ -207,17 +270,23 @@ export default function Home() {
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   About
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Contact
                 </Link>
               </li>
@@ -227,17 +296,23 @@ export default function Home() {
             <h3 className="font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Privacy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                <Link
+                  href="#"
+                  className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
                   Cookies
                 </Link>
               </li>

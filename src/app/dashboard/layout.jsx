@@ -57,6 +57,11 @@ export default function DashboardLayout({ children }) {
     );
   }
 
+  // Don't render children if there's no session
+  if (!session) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Sidebar */}
