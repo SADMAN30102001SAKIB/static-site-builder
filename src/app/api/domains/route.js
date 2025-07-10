@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import { addDomainToVercel } from "@/lib/vercel";
 
 const prisma = new PrismaClient();
 
@@ -63,12 +64,33 @@ export async function POST(request) {
       );
     }
 
-    // Validate domain format
+    // Validate domain format using the same validation as vercel.js
     const domainRegex =
-      /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
+      /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+
     if (!domainRegex.test(customDomain)) {
       return NextResponse.json(
         { error: "Invalid domain format" },
+        { status: 400 },
+      );
+    }
+
+    // Additional validation: reject localhost and IP addresses
+    if (
+      customDomain.includes("localhost") ||
+      /^\d+\.\d+\.\d+\.\d+$/.test(customDomain)
+    ) {
+      return NextResponse.json(
+        { error: "Localhost and IP addresses are not supported" },
+        { status: 400 },
+      );
+    }
+
+    // Reject common test domains
+    const testDomains = ["example.com", "test.com", "localhost.com"];
+    if (testDomains.includes(customDomain.toLowerCase())) {
+      return NextResponse.json(
+        { error: "Test domains are not allowed" },
         { status: 400 },
       );
     }
@@ -114,8 +136,30 @@ export async function POST(request) {
       },
     });
 
-    // TODO: Add domain to Vercel via API
-    // This would require VERCEL_ACCESS_TOKEN and PROJECT_ID
+    // Add domain to Vercel via API
+    console.log(`🚀 Adding domain ${customDomain} to Vercel...`);
+    const vercelResult = await addDomainToVercel(customDomain);
+
+    if (!vercelResult.success) {
+      // If Vercel fails, rollback database changes
+      await prisma.website.update({
+        where: { id: websiteId },
+        data: {
+          customDomain: null,
+          domainVerified: false,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          error: `Failed to add domain to Vercel: ${vercelResult.error}`,
+          details: "Your domain was not saved. Please try again.",
+        },
+        { status: 500 },
+      );
+    }
+
+    console.log(`✅ Domain ${customDomain} successfully added to Vercel`);
 
     return NextResponse.json({
       message: "Domain added successfully",
@@ -124,6 +168,10 @@ export async function POST(request) {
         name: updatedWebsite.name,
         customDomain: updatedWebsite.customDomain,
         domainVerified: updatedWebsite.domainVerified,
+      },
+      vercel: {
+        success: true,
+        message: "Domain registered with Vercel",
       },
     });
   } catch (error) {

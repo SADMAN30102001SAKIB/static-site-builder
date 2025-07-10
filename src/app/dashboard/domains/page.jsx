@@ -7,52 +7,150 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
+function StatusBadge({ verified, isLoading }) {
+  if (isLoading) {
+    return (
+      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600 mr-1"></div>
+        Checking...
+      </span>
+    );
+  }
+
+  if (verified) {
+    return (
+      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+        Verified
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+      <div className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></div>
+      Pending
+    </span>
+  );
+}
+
+function ErrorDisplay({ error, onRetry, onDismiss }) {
+  if (!error) return null;
+
+  const isNetworkError = error.code === "NETWORK_ERROR";
+  const isConfigError = error.code === "MISSING_CREDENTIALS";
+
+  return (
+    <div className="rounded-md bg-red-50 p-4 mb-6 border border-red-200">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <svg
+            className="h-5 w-5 text-red-400"
+            viewBox="0 0 20 20"
+            fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+        <div className="ml-3 flex-1">
+          <h3 className="text-sm font-medium text-red-800">
+            {isConfigError
+              ? "Configuration Error"
+              : isNetworkError
+              ? "Network Error"
+              : "Error"}
+          </h3>
+          <div className="mt-2 text-sm text-red-700">
+            <p>{error.message}</p>
+            {isConfigError && (
+              <p className="mt-1 text-xs">
+                Please check your Vercel API credentials in the environment
+                variables.
+              </p>
+            )}
+          </div>
+          {(onRetry || onDismiss) && (
+            <div className="mt-4 flex space-x-2">
+              {onRetry && !isConfigError && (
+                <button
+                  onClick={onRetry}
+                  className="text-sm bg-red-100 text-red-800 hover:bg-red-200 px-3 py-1 rounded-md transition-colors">
+                  Try Again
+                </button>
+              )}
+              {onDismiss && (
+                <button
+                  onClick={onDismiss}
+                  className="text-sm text-red-600 hover:text-red-800">
+                  Dismiss
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DomainsPage() {
   const { data: session, status } = useSession();
   const [domains, setDomains] = useState([]);
   const [websites, setWebsites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [showAddDomain, setShowAddDomain] = useState(false);
   const [newDomain, setNewDomain] = useState({
     websiteId: "",
     customDomain: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verifyingDomains, setVerifyingDomains] = useState(new Set());
+  const [removingDomains, setRemovingDomains] = useState(new Set());
+
+  const fetchData = async () => {
+    if (!session) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Fetch domains and websites in parallel
+      const [domainsResponse, websitesResponse] = await Promise.all([
+        fetch("/api/domains"),
+        fetch("/api/websites"),
+      ]);
+
+      if (!domainsResponse.ok || !websitesResponse.ok) {
+        const errorData = domainsResponse.ok
+          ? await websitesResponse.json()
+          : await domainsResponse.json();
+        throw new Error(errorData.error || "Failed to fetch data");
+      }
+
+      const [domainsData, websitesData] = await Promise.all([
+        domainsResponse.json(),
+        websitesResponse.json(),
+      ]);
+
+      setDomains(domainsData.domains || []);
+      setWebsites(websitesData.websites || []);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError({
+        message:
+          err.message || "Failed to load domains. Please try again later.",
+        code: err.code || "UNKNOWN_ERROR",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      if (!session) return;
-
-      try {
-        setIsLoading(true);
-        setError("");
-
-        // Fetch domains and websites in parallel
-        const [domainsResponse, websitesResponse] = await Promise.all([
-          fetch("/api/domains"),
-          fetch("/api/websites"),
-        ]);
-
-        if (!domainsResponse.ok || !websitesResponse.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const [domainsData, websitesData] = await Promise.all([
-          domainsResponse.json(),
-          websitesResponse.json(),
-        ]);
-
-        setDomains(domainsData.domains || []);
-        setWebsites(websitesData.websites || []);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load domains. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     if (session && domains.length === 0) {
       fetchData();
     } else if (status !== "loading") {
@@ -309,14 +407,10 @@ export default function DomainsPage() {
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                           {domain.customDomain}
                         </h3>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            domain.domainVerified
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                          }`}>
-                          {domain.domainVerified ? "Verified" : "Pending"}
-                        </span>
+                        <StatusBadge
+                          verified={domain.domainVerified}
+                          isLoading={false}
+                        />
                         {domain.published && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             Live
@@ -331,22 +425,76 @@ export default function DomainsPage() {
                         <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
                           <p className="text-sm text-yellow-800 dark:text-yellow-200">
                             <strong>Setup Required:</strong> Add these DNS
-                            records to your domain:
+                            records to your domain provider:
                           </p>
-                          <div className="mt-2 text-xs font-mono bg-white dark:bg-gray-800 p-2 rounded border">
-                            <div>Type: CNAME</div>
-                            <div>Name: @ (or www)</div>
-                            <div>
-                              Value: static-site-builder-omega.vercel.app
+                          <div className="mt-2 space-y-3">
+                            <div className="text-xs bg-white dark:bg-gray-800 p-3 rounded border">
+                              <div className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Option 1: A Record (Recommended)
+                              </div>
+                              <div className="font-mono space-y-1">
+                                <div>
+                                  Type:{" "}
+                                  <span className="text-blue-600 font-semibold">
+                                    A
+                                  </span>
+                                </div>
+                                <div>
+                                  Name:{" "}
+                                  <span className="text-blue-600 font-semibold">
+                                    @
+                                  </span>
+                                </div>
+                                <div>
+                                  Value:{" "}
+                                  <span className="text-blue-600 font-semibold">
+                                    216.198.79.1
+                                  </span>
+                                </div>
+                                <div className="text-gray-500 text-xs mt-1">
+                                  TTL: 3600 (or default)
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-xs bg-white dark:bg-gray-800 p-3 rounded border opacity-75">
+                              <div className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Option 2: CNAME (Alternative)
+                              </div>
+                              <div className="font-mono space-y-1">
+                                <div>
+                                  Type:{" "}
+                                  <span className="text-purple-600 font-semibold">
+                                    CNAME
+                                  </span>
+                                </div>
+                                <div>
+                                  Name:{" "}
+                                  <span className="text-purple-600 font-semibold">
+                                    www
+                                  </span>
+                                </div>
+                                <div>
+                                  Value:{" "}
+                                  <span className="text-purple-600 font-semibold">
+                                    cname.vercel-dns.com
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <p className="text-xs text-yellow-600 dark:text-yellow-300 mt-2">
-                            💡 <strong>For Development:</strong> Use
-                            static-site-builder-omega.vercel.app
-                            <br />
-                            🚀 <strong>For Production:</strong> Use
-                            cname.vercel-dns.com (when you have Vercel Pro)
-                          </p>
+                          <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                            <p className="text-xs text-green-800 dark:text-green-200">
+                              ✅{" "}
+                              <strong>
+                                Domain automatically registered with Vercel!
+                              </strong>
+                              <br />
+                              🔒 SSL certificate will be provisioned
+                              automatically
+                              <br />⚡ Configure your DNS and click "Verify"
+                              below
+                            </p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -400,7 +548,8 @@ export default function DomainsPage() {
                 </span>
                 <div>
                   <strong>Add your domain above</strong> - Enter the domain you
-                  want to connect to your website
+                  want to connect to your website. We'll automatically register
+                  it with Vercel for you!
                 </div>
               </div>
               <div className="flex gap-3">
@@ -408,15 +557,15 @@ export default function DomainsPage() {
                   2
                 </span>
                 <div>
-                  <strong>Configure DNS</strong> - Add a CNAME record in your
-                  domain registrar pointing to{" "}
-                  <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">
-                    static-site-builder-omega.vercel.app
+                  <strong>Configure DNS</strong> - Add an A record in your
+                  domain registrar:
+                  <br />
+                  <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded font-semibold text-blue-600">
+                    Type: A, Name: @, Value: 216.198.79.1
                   </code>
                   <br />
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    (For testing, you can get free domains from DuckDNS,
-                    Freenom, or NoIP)
+                    (Alternative: CNAME to cname.vercel-dns.com)
                   </span>
                 </div>
               </div>
@@ -437,9 +586,9 @@ export default function DomainsPage() {
                   4
                 </span>
                 <div>
-                  <strong>Verify</strong> - Click the verify button (currently
-                  just marks as verified in database - real DNS verification
-                  coming soon!)
+                  <strong>Verify</strong> - Click the verify button to check
+                  domain configuration with Vercel. SSL certificates are
+                  provisioned automatically!
                 </div>
               </div>
               <div className="flex gap-3">

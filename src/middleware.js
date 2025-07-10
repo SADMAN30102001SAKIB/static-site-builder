@@ -26,6 +26,8 @@ export async function middleware(request) {
 
   // Check if this is a custom domain
   try {
+    console.log(`🔍 Checking custom domain: ${hostname}`);
+
     const website = await prisma.website.findFirst({
       where: {
         customDomain: hostname,
@@ -44,6 +46,36 @@ export async function middleware(request) {
       );
 
       return NextResponse.rewrite(url);
+    } else {
+      // Check if domain exists but is not verified/published
+      const unverifiedWebsite = await prisma.website.findFirst({
+        where: {
+          customDomain: hostname,
+        },
+      });
+
+      if (unverifiedWebsite) {
+        const reason = !unverifiedWebsite.domainVerified
+          ? "Domain not verified"
+          : "Website not published";
+
+        console.log(
+          `⚠️ Custom domain "${hostname}" found but not accessible: ${reason}`,
+        );
+
+        return new Response(
+          `<html><body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h1 style="color: #f59e0b;">Domain Configuration Pending</h1>
+            <p>This domain is configured but not yet ready.</p>
+            <p><strong>Reason:</strong> ${reason}</p>
+            <p>Please contact the site owner to complete the setup.</p>
+          </body></html>`,
+          {
+            headers: { "Content-Type": "text/html" },
+            status: 503,
+          },
+        );
+      }
     }
   } catch (error) {
     console.error("❌ Middleware domain lookup error:", error);

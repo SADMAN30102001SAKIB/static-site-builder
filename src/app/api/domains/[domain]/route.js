@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import { removeDomainFromVercel, verifyDomainWithVercel } from "@/lib/vercel";
 
 const prisma = new PrismaClient();
 
@@ -31,7 +32,7 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Remove custom domain
+    // Remove custom domain from database
     await prisma.website.update({
       where: { id: website.id },
       data: {
@@ -40,10 +41,31 @@ export async function DELETE(request, { params }) {
       },
     });
 
-    // TODO: Remove domain from Vercel via API
+    // Remove domain from Vercel via API
+    console.log(`🗑️ Removing domain ${domain} from Vercel...`);
+    const vercelResult = await removeDomainFromVercel(domain);
+
+    if (!vercelResult.success) {
+      console.error(
+        `❌ Failed to remove domain ${domain} from Vercel:`,
+        vercelResult.error,
+      );
+      // Don't fail the request - domain is already removed from database
+      return NextResponse.json({
+        message:
+          "Domain removed from database, but failed to remove from Vercel",
+        warning: vercelResult.error,
+      });
+    }
+
+    console.log(`✅ Domain ${domain} successfully removed from Vercel`);
 
     return NextResponse.json({
       message: "Domain removed successfully",
+      vercel: {
+        success: true,
+        message: "Domain removed from Vercel",
+      },
     });
   } catch (error) {
     console.error("Error removing domain:", error);
@@ -82,19 +104,46 @@ export async function PUT(request, { params }) {
         );
       }
 
-      // TODO: Implement actual DNS verification
-      // For now, we'll simulate verification
+      // Verify domain with Vercel API
+      console.log(`🔍 Verifying domain ${domain} with Vercel...`);
+      const vercelResult = await verifyDomainWithVercel(domain);
+
+      if (!vercelResult.success) {
+        return NextResponse.json(
+          {
+            error: `Failed to verify domain with Vercel: ${vercelResult.error}`,
+            details: "Please check your DNS configuration and try again.",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Update verification status based on Vercel response
+      const isVerified = vercelResult.verified;
 
       await prisma.website.update({
         where: { id: website.id },
         data: {
-          domainVerified: true,
+          domainVerified: isVerified,
         },
       });
 
+      console.log(
+        `${isVerified ? "✅" : "⚠️"} Domain ${domain} verification status: ${
+          isVerified ? "verified" : "pending"
+        }`,
+      );
+
       return NextResponse.json({
-        message: "Domain verified successfully",
-        verified: true,
+        message: isVerified
+          ? "Domain verified successfully"
+          : "Domain verification pending - please check DNS configuration",
+        verified: isVerified,
+        vercel: {
+          success: true,
+          verified: isVerified,
+          data: vercelResult.data,
+        },
       });
     }
 
