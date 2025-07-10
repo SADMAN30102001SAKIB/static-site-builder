@@ -62,6 +62,8 @@ model Website {
   slug        String   @unique
   description String?
   published   Boolean  @default(false)
+  customDomain String? @unique
+  domainVerified Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String

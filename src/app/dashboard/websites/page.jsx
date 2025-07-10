@@ -37,14 +37,14 @@ export default function WebsitesPage() {
       }
     }
 
-    // Only fetch websites if the user is authenticated
-    if (session) {
+    // Only fetch websites if the user is authenticated AND we don't have data yet
+    if (session && websites.length === 0) {
       fetchWebsites();
     } else if (status !== "loading") {
       // If not loading and no session, stop loading
       setIsLoading(false);
     }
-  }, [session, status]);
+  }, [session, status]); // Remove websites from dependencies to prevent refetching
 
   const handleEditWebsite = async id => {
     // Find the first page for this website
