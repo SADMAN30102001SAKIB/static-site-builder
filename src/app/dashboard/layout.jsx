@@ -10,6 +10,7 @@ import { Container } from "@/components/ui/Container";
 export default function DashboardLayout({ children }) {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { userProfile } = useUserStore();
 
   // Use our global store for sidebar state
   const { sidebarCollapsed, toggleSidebar } = useUserStore();
@@ -235,26 +236,27 @@ export default function DashboardLayout({ children }) {
           <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center px-4 py-2">
               <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 mr-3">
-                {session?.user?.image ? (
+                {userProfile?.image || session?.user?.image ? (
                   <img
-                    src={session.user.image}
-                    alt={session.user.name || "User"}
+                    src={userProfile?.image || session.user.image}
+                    alt={userProfile?.name || session.user.name || "User"}
                     className="object-cover w-full h-full"
                   />
                 ) : (
                   <div className="flex items-center justify-center w-full h-full text-gray-500 dark:text-gray-400 font-medium">
-                    {session?.user?.name
-                      ? session.user.name[0].toUpperCase()
+                    {userProfile?.name || session?.user?.name
+                      ? (userProfile?.name ||
+                          session.user.name)[0].toUpperCase()
                       : "U"}
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {session?.user?.name || "User"}
+                  {userProfile?.name || session?.user?.name || "User"}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {session?.user?.email || ""}
+                  {userProfile?.email || session?.user?.email || ""}
                 </p>
               </div>
             </div>
@@ -347,22 +349,23 @@ export default function DashboardLayout({ children }) {
                 href="/dashboard/profile"
                 className="flex items-center text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-                  {session?.user?.image ? (
+                  {userProfile?.image || session?.user?.image ? (
                     <img
-                      src={session.user.image}
-                      alt={session.user.name || "User"}
+                      src={userProfile?.image || session.user.image}
+                      alt={userProfile?.name || session.user.name || "User"}
                       className="object-cover w-full h-full"
                     />
                   ) : (
                     <div className="flex items-center justify-center w-full h-full text-gray-500 dark:text-gray-400 font-medium">
-                      {session?.user?.name
-                        ? session.user.name[0].toUpperCase()
+                      {userProfile?.name || session?.user?.name
+                        ? (userProfile?.name ||
+                            session.user.name)[0].toUpperCase()
                         : "U"}
                     </div>
                   )}
                 </div>
                 <span className="ml-2 hidden md:inline-block">
-                  {session?.user?.name || "User"}
+                  {userProfile?.name || session?.user?.name || "User"}
                 </span>
               </Link>
             </div>

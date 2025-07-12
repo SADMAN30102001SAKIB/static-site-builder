@@ -49,7 +49,16 @@ export async function PUT(request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, email, image, bio } = await request.json();
+    // Add timeout to request parsing
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Request timeout")), 10000); // 10 second timeout
+    });
+
+    const requestPromise = request.json();
+    const { name, email, image, bio } = await Promise.race([
+      requestPromise,
+      timeoutPromise,
+    ]);
 
     // Validate required fields
     if (!name || !email) {
@@ -66,6 +75,18 @@ export async function PUT(request) {
         { message: "Invalid email format" },
         { status: 400 },
       );
+    }
+
+    // Validate image URL if provided
+    if (image && image.trim()) {
+      try {
+        new URL(image);
+      } catch {
+        return NextResponse.json(
+          { message: "Invalid image URL format" },
+          { status: 400 },
+        );
+      }
     }
 
     // Check if email is already taken by another user
