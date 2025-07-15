@@ -14,10 +14,15 @@ export const ToastContext = createContext({
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  const toast = ({ title, description, variant = "default", duration = 5000 }) => {
+  const toast = ({
+    title,
+    description,
+    variant = "default",
+    duration = 5000,
+  }) => {
     const id = Math.random().toString(36).substring(2, 9);
     const newToast = { id, title, description, variant, duration };
-    setToasts((prevToasts) => [...prevToasts, newToast]);
+    setToasts(prevToasts => [...prevToasts, newToast]);
 
     if (duration !== Infinity) {
       setTimeout(() => {
@@ -28,8 +33,8 @@ export function ToastProvider({ children }) {
     return id;
   };
 
-  const dismiss = (id) => {
-    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
+  const dismiss = id => {
+    setToasts(prevToasts => prevToasts.filter(toast => toast.id !== id));
   };
 
   return (

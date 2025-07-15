@@ -11,7 +11,7 @@ export default async function Home() {
       <header className="w-full py-4 px-6 md:px-12 flex items-center justify-between bg-white dark:bg-gray-900 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="font-bold text-xl text-[rgb(var(--primary))]">
-            WebsiteBuilder
+            StaticSiteBuilder
           </div>
         </div>
         <nav className="hidden md:flex items-center gap-8">
@@ -71,9 +71,9 @@ export default async function Home() {
               <span className="text-[rgb(var(--primary))]">without code</span>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-              Our drag-and-drop website builder makes it easy for anyone to
-              create professional-looking websites in minutes, no technical
-              skills required.
+              Our drag-and-drop static site builder makes it easy for anyone to
+              create professional-looking static websites in minutes, no
+              technical skills required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               {session ? (
@@ -234,7 +234,7 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-8">
           <div>
             <div className="font-bold text-xl text-[rgb(var(--primary))] mb-4">
-              WebsiteBuilder
+              StaticSiteBuilder
             </div>
             <p className="text-gray-600 dark:text-gray-400">
               The easiest way to build professional websites without code.
@@ -320,7 +320,7 @@ export default async function Home() {
           </div>
         </div>
         <div className="max-w-6xl mx-auto border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 text-center text-gray-600 dark:text-gray-400">
-          {new Date().getFullYear()} WebsiteBuilder. All rights reserved.
+          {new Date().getFullYear()} StaticSiteBuilder. All rights reserved.
         </div>
       </footer>
     </div>

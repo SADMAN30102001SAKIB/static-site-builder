@@ -70,7 +70,7 @@ function LoginForm() {
             Sign In
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Access your website builder
+            Access your Static Site Builder
           </p>
         </div>
 

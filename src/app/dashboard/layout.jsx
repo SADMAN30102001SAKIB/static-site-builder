@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import useUserStore from "@/store/useUserStore";
-import { Container } from "@/components/ui/Container";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -77,7 +76,7 @@ export default function DashboardLayout({ children }) {
             <Link
               href="/dashboard"
               className="font-bold text-xl text-[rgb(var(--primary))]">
-              WebsiteBuilder
+              StaticSiteBuilder
             </Link>
             <button
               onClick={toggleSidebar}

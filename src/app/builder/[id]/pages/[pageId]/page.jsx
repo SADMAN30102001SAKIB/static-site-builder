@@ -355,7 +355,7 @@ export default function PageBuilderEditor({ params }) {
             <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
             <div className="flex items-center">
               <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {website?.name || "Website Builder"}
+                {website?.name || "Static Site Builder"}
               </h1>
               <span className="mx-2 text-gray-400 dark:text-gray-500">/</span>
               <span className="text-gray-600 dark:text-gray-400">
