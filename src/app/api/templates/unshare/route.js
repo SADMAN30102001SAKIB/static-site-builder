@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
-export async function PATCH(request, { params }) {
+// Remove a website from templates
+export async function POST(request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -11,19 +12,18 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params;
-    const { published } = await request.json();
+    const { websiteId } = await request.json();
 
-    if (typeof published !== "boolean") {
+    if (!websiteId) {
       return NextResponse.json(
-        { message: "Published status must be a boolean" },
+        { message: "Missing required field: websiteId" },
         { status: 400 },
       );
     }
 
-    // Find the website and verify ownership
+    // Verify the user owns the website
     const website = await prisma.website.findUnique({
-      where: { id },
+      where: { id: websiteId },
     });
 
     if (!website) {
@@ -33,25 +33,36 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    // Verify the user owns this website
     if (website.userId !== session.user.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+      return NextResponse.json(
+        { message: "You don't own this website" },
+        { status: 403 },
+      );
     }
 
-    // Update the published status
+    if (!website.isTemplate) {
+      return NextResponse.json(
+        { message: "Website is not currently shared as a template" },
+        { status: 400 },
+      );
+    }
+
+    // Update the website to remove it from templates
     const updatedWebsite = await prisma.website.update({
-      where: { id },
-      data: { published },
+      where: { id: websiteId },
+      data: {
+        isTemplate: false,
+        templateDescription: null,
+        templateTags: null,
+      },
     });
 
     return NextResponse.json({
-      message: published
-        ? "Website published successfully"
-        : "Website unpublished successfully",
+      message: "Website removed from templates successfully",
       website: updatedWebsite,
     });
   } catch (error) {
-    console.error("Error updating publish status:", error);
+    console.error("Error removing website from templates:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 },

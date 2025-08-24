@@ -2,6 +2,7 @@
 
 import { useDrop } from "react-dnd";
 import CanvasComponent from "./CanvasComponent";
+import DropZone from "./DropZone";
 import { useCallback } from "react";
 
 export default function BuilderCanvas({
@@ -12,6 +13,30 @@ export default function BuilderCanvas({
   onMoveComponent,
   onUpdateComponent,
 }) {
+  // Handle dropping at specific positions
+  const handleDropAtPosition = (
+    componentTypeOrId,
+    position,
+    parentId,
+    isMove = false,
+  ) => {
+    if (isMove) {
+      // Moving existing component
+      onMoveComponent(componentTypeOrId, position, parentId);
+    } else {
+      // Adding new component
+      onAddComponent(componentTypeOrId, position, parentId);
+    }
+  };
+
+  // Calculate next position for root level components
+  const getNextRootPosition = () => {
+    const rootComponents = components.filter(c => !c.parentId);
+    return rootComponents.length > 0
+      ? Math.max(...rootComponents.map(c => c.position || 0)) + 1
+      : 0;
+  };
+
   // Setup drop target for canvas
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ["COMPONENT", "CANVAS_COMPONENT"],
@@ -22,15 +47,17 @@ export default function BuilderCanvas({
         return;
       }
 
+      const nextPosition = getNextRootPosition();
+
       // If it's a new component from the library
       if (item.type && !item.id) {
-        onAddComponent(item.type, components.length, null);
+        onAddComponent(item.type, nextPosition, null);
         return;
       }
 
       // If it's an existing component being moved
       if (item.id) {
-        onMoveComponent(item.id, components.length, null);
+        onMoveComponent(item.id, nextPosition, null);
         return;
       }
     },
@@ -40,178 +67,23 @@ export default function BuilderCanvas({
     }),
   }));
 
-  // Helper function to get default properties for each component type
-  const getDefaultProperties = useCallback(type => {
-    const defaults = {
-      heading: {
-        text: "New Heading",
-        level: "h2",
-        textAlign: "left",
-        color: "#000000",
-      },
-      paragraph: {
-        text: "New paragraph text. Double-click to edit.",
-        textAlign: "left",
-        color: "#000000",
-      },
-      button: {
-        text: "Click me",
-        backgroundColor: "#3b82f6",
-        textColor: "#ffffff",
-        size: "medium",
-        url: "#",
-      },
-      image: {
-        src: "https://via.placeholder.com/300x200",
-        alt: "Image description",
-        width: "300px",
-      },
-      container: {
-        backgroundColor: "transparent",
-        padding: "20px",
-        width: "100%",
-      },
-      divider: {
-        style: "solid",
-        color: "#e5e7eb",
-        width: "100%",
-        thickness: "1px",
-      },
-      input: {
-        placeholder: "Enter text...",
-        label: "Input Label",
-        required: false,
-      },
-      textarea: {
-        placeholder: "Enter text...",
-        label: "Textarea Label",
-        required: false,
-        rows: 4,
-      },
-      checkbox: {
-        label: "Checkbox Label",
-      },
-      video: {
-        url: "",
-        width: "100%",
-        height: "auto",
-        controls: true,
-        autoplay: false,
-      },
-      icon: {
-        name: "star",
-        size: "24px",
-        color: "#000000",
-      },
-      columns: {
-        columns: 2,
-        gap: "20px",
-      },
-      spacer: {
-        height: "40px",
-      },
-      select: {
-        label: "Select Label",
-        options: ["Option 1", "Option 2", "Option 3"],
-        required: false,
-      },
-      contactForm: {
-        title: "Contact Us",
-        submitButtonText: "Send Message",
-        showNameField: true,
-        showSubjectField: true,
-      },
-      hero: {
-        title: "Hero Title",
-        subtitle: "Add a subtitle here",
-        backgroundImage: "",
-        textColor: "#ffffff",
-        alignment: "center",
-        height: "400px",
-      },
-      features: {
-        title: "Our Features",
-        featureCount: 3,
-        showIcons: true,
-      },
-      testimonials: {
-        text: "This is a great testimonial.",
-        author: "John Doe",
-        position: "CEO, Company",
-        avatar: "https://via.placeholder.com/60x60",
-      },
-      pricing: {
-        title: "Pricing Plans",
-        plans: [
-          {
-            name: "Basic",
-            price: "$10",
-            features: ["Feature 1", "Feature 2"],
-          },
-          {
-            name: "Pro",
-            price: "$20",
-            features: ["Feature 1", "Feature 2", "Feature 3"],
-          },
-        ],
-      },
-      gallery: {
-        images: [
-          "https://via.placeholder.com/300x200",
-          "https://via.placeholder.com/300x200",
-          "https://via.placeholder.com/300x200",
-        ],
-        columns: 3,
-      },
-      logo: {
-        src: "https://via.placeholder.com/150x50",
-        alt: "Logo",
-        width: "150px",
-      },
-      navbar: {
-        brand: "Brand Name",
-        links: [
-          { text: "Home", url: "/" },
-          { text: "About", url: "/about" },
-          { text: "Contact", url: "/contact" },
-        ],
-        backgroundColor: "#ffffff",
-        textColor: "#000000",
-      },
-      footer: {
-        text: "© 2024 Your Company. All rights reserved.",
-        backgroundColor: "#374151",
-        textColor: "#ffffff",
-        links: [
-          { text: "Privacy", url: "/privacy" },
-          { text: "Terms", url: "/terms" },
-        ],
-      },
-      socialLinks: {
-        platforms: ["facebook", "twitter", "instagram"],
-        layout: "horizontal",
-        iconSize: "24px",
-      },
-      callToAction: {
-        title: "Ready to get started?",
-        subtitle: "Join thousands of satisfied customers today!",
-        buttonText: "Get Started",
-        align: "center",
-        backgroundColor: "#3b82f6",
-      },
-    };
-
-    return defaults[type] || {};
-  }, []);
-
   // Organize components into a tree structure
-  const rootComponents = components.filter(component => !component.parentId);
+  const rootComponents = components
+    .filter(component => !component.parentId)
+    .map(component => ({
+      ...component,
+      position: component.position || 0, // Ensure position is never null
+    }));
 
   // Helper function to get children of a component
   const getChildComponents = useCallback(
     parentId => {
       return components
         .filter(component => component.parentId === parentId)
+        .map(component => ({
+          ...component,
+          position: component.position || 0, // Ensure position is never null
+        }))
         .sort((a, b) => a.position - b.position);
     },
     [components],
@@ -271,12 +143,31 @@ export default function BuilderCanvas({
           </p>
         </div>
 
-        {/* Components */}
-        <div className="space-y-4">
+        {/* Components with Drop Zones */}
+        <div className="space-y-1">
           {rootComponents.length > 0 ? (
-            rootComponents
-              .sort((a, b) => a.position - b.position)
-              .map(renderComponent)
+            <>
+              {/* Drop zone at the beginning */}
+              <DropZone
+                onDrop={handleDropAtPosition}
+                position={0}
+                parentId={null}
+              />
+
+              {rootComponents
+                .sort((a, b) => (a.position || 0) - (b.position || 0))
+                .map((component, index) => (
+                  <div key={component.id}>
+                    {renderComponent(component)}
+                    {/* Drop zone after each component - use index + 1 for sequential positioning */}
+                    <DropZone
+                      onDrop={handleDropAtPosition}
+                      position={index + 1}
+                      parentId={null}
+                    />
+                  </div>
+                ))}
+            </>
           ) : (
             <div className="text-center py-20">
               <div className="text-gray-400 dark:text-gray-500 mb-4">

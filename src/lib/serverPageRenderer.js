@@ -58,7 +58,7 @@ function reactElementToHtml(element) {
   return `<${type}${attrsStr ? " " + attrsStr : ""}>${childrenHtml}</${type}>`;
 }
 
-function renderComponentTree(components, parentId = null) {
+function renderComponentTree(components, website, parentId = null) {
   const componentsAtLevel = components.filter(c => c.parentId === parentId);
   let html = "";
 
@@ -68,7 +68,7 @@ function renderComponentTree(components, parentId = null) {
 
     const childElements =
       childComponents.length > 0
-        ? renderComponentTree(components, component.id)
+        ? renderComponentTree(components, website, component.id)
         : null;
 
     // Parse properties from JSON string to object
@@ -91,6 +91,7 @@ function renderComponentTree(components, parentId = null) {
       properties: properties,
       children: childElements,
       type: component.type,
+      websiteSlug: website?.slug, // Pass website slug for URL transformation
     });
 
     // Convert to HTML - no extra container wrapping needed
@@ -101,18 +102,19 @@ function renderComponentTree(components, parentId = null) {
   return html;
 }
 
-export function renderPageToHtml(page) {
+export function renderPageToHtml(page, website) {
   if (!page || !page.components) {
     return "<div>No content found</div>";
   }
 
   return `<div class="space-y-6 px-6 sm:px-12 lg:px-20 xl:px-24 max-w-7xl mx-auto">${renderComponentTree(
     page.components,
+    website,
   )}</div>`;
 }
 
 export function generateFullPageHtml(page, website, isPreview = false) {
-  const componentsHtml = renderPageToHtml(page);
+  const componentsHtml = renderPageToHtml(page, website);
   const allPages = website.pages;
 
   // Generate navigation for preview mode

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 // Component property editor based on component type
 const PropertyEditors = {
@@ -1368,6 +1368,264 @@ const PropertyEditors = {
           <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             Required field
           </label>
+        </div>
+      </div>
+    );
+  },
+
+  navbar: ({ properties, onChange }) => {
+    const {
+      brand,
+      transparent,
+      sticky,
+      backgroundColor,
+      textColor,
+      brandColor,
+      hoverColor,
+      items = [],
+    } = properties;
+
+    const handleItemUpdate = (index, field, value) => {
+      const newItems = [...items];
+      newItems[index] = { ...newItems[index], [field]: value };
+      onChange({ ...properties, items: newItems });
+    };
+
+    const addNavItem = (type = "link") => {
+      const newItem =
+        type === "button"
+          ? {
+              label: "Button",
+              type: "button",
+              buttonColor: "#3b82f6",
+              buttonTextColor: "#ffffff",
+            }
+          : { label: "Link", url: "#", type: "link" };
+      onChange({ ...properties, items: [...items, newItem] });
+    };
+
+    const removeNavItem = index => {
+      const newItems = items.filter((_, i) => i !== index);
+      onChange({ ...properties, items: newItems });
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Brand */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Brand/Logo Text
+          </label>
+          <input
+            type="text"
+            value={brand || ""}
+            onChange={e => onChange({ ...properties, brand: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] dark:bg-gray-700"
+            placeholder="Your Brand"
+          />
+        </div>
+
+        {/* Style Options */}
+        <div className="space-y-3">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={transparent || false}
+              onChange={e =>
+                onChange({ ...properties, transparent: e.target.checked })
+              }
+              className="mr-2"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Transparent Background
+            </span>
+          </label>
+
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={sticky || false}
+              onChange={e =>
+                onChange({ ...properties, sticky: e.target.checked })
+              }
+              className="mr-2"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Sticky Navigation
+            </span>
+          </label>
+        </div>
+
+        {/* Colors */}
+        {!transparent && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Background Color
+            </label>
+            <input
+              type="color"
+              value={backgroundColor || "#1f2937"}
+              onChange={e =>
+                onChange({ ...properties, backgroundColor: e.target.value })
+              }
+              className="w-full h-10 p-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
+            />
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Text Color
+          </label>
+          <input
+            type="color"
+            value={textColor || (transparent ? "#000000" : "#ffffff")}
+            onChange={e =>
+              onChange({ ...properties, textColor: e.target.value })
+            }
+            className="w-full h-10 p-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Brand Color
+          </label>
+          <input
+            type="color"
+            value={
+              brandColor || textColor || (transparent ? "#000000" : "#ffffff")
+            }
+            onChange={e =>
+              onChange({ ...properties, brandColor: e.target.value })
+            }
+            className="w-full h-10 p-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Hover Color
+          </label>
+          <input
+            type="color"
+            value={hoverColor || "#3b82f6"}
+            onChange={e =>
+              onChange({ ...properties, hoverColor: e.target.value })
+            }
+            className="w-full h-10 p-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
+          />
+        </div>
+
+        {/* Navigation Items */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Navigation Items
+            </label>
+            <div className="flex space-x-2">
+              <button
+                type="button"
+                onClick={() => addNavItem("link")}
+                className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
+                + Link
+              </button>
+              <button
+                type="button"
+                onClick={() => addNavItem("button")}
+                className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600">
+                + Button
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {items.map((item, index) => (
+              <div
+                key={index}
+                className="p-3 border border-gray-200 dark:border-gray-600 rounded-md">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {item.type === "button" ? "Button" : "Link"} {index + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeNavItem(index)}
+                    className="text-red-500 hover:text-red-700">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={item.label || ""}
+                    onChange={e =>
+                      handleItemUpdate(index, "label", e.target.value)
+                    }
+                    placeholder="Label"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700"
+                  />
+
+                  {item.type === "link" && (
+                    <input
+                      type="text"
+                      value={item.url || ""}
+                      onChange={e =>
+                        handleItemUpdate(index, "url", e.target.value)
+                      }
+                      placeholder="URL (e.g., / for home, /about for page, #section for anchor)"
+                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700"
+                    />
+                  )}
+
+                  {item.type === "button" && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="color"
+                        value={item.buttonColor || "#3b82f6"}
+                        onChange={e =>
+                          handleItemUpdate(index, "buttonColor", e.target.value)
+                        }
+                        className="w-full h-8 p-1 border border-gray-300 dark:border-gray-600 rounded-md"
+                        title="Button Color"
+                      />
+                      <input
+                        type="color"
+                        value={item.buttonTextColor || "#ffffff"}
+                        onChange={e =>
+                          handleItemUpdate(
+                            index,
+                            "buttonTextColor",
+                            e.target.value,
+                          )
+                        }
+                        className="w-full h-8 p-1 border border-gray-300 dark:border-gray-600 rounded-md"
+                        title="Text Color"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {items.length === 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              No navigation items. Click "+ Link" or "+ Button" to add items.
+            </p>
+          )}
         </div>
       </div>
     );

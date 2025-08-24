@@ -53,7 +53,6 @@ function DraggableComponent({ type, name, icon, description, category }) {
 export default function ComponentLibrary({ onAddComponent }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [favorites, setFavorites] = useState([]);
 
   const componentCategories = [
     {

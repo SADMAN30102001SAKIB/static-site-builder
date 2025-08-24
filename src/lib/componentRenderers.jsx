@@ -565,35 +565,119 @@ const componentRenderers = {
     );
   },
 
-  navbar: ({ properties }) => {
-    const { brand, transparent, sticky } = properties;
+  navbar: ({ properties, websiteSlug }) => {
+    const {
+      brand,
+      transparent,
+      sticky,
+      backgroundColor,
+      textColor,
+      brandColor,
+      hoverColor,
+      items = [],
+    } = properties;
+
+    // Default navigation items if none provided
+    const defaultItems = [
+      { label: "Home", url: "#", type: "link" },
+      { label: "About", url: "#", type: "link" },
+      { label: "Services", url: "#", type: "link" },
+      { label: "Contact", url: "#", type: "link" },
+    ];
+
+    const navItems = items.length > 0 ? items : defaultItems;
+
+    // Transform URLs based on website context
+    const transformUrl = url => {
+      if (!url || url.startsWith("http") || url.startsWith("#")) {
+        return url; // External links or anchors remain unchanged
+      }
+
+      if (websiteSlug) {
+        // In live site context, transform relative URLs
+        if (url === "/") {
+          return `/site/${websiteSlug}`;
+        }
+        if (url.startsWith("/")) {
+          return `/site/${websiteSlug}${url}`;
+        }
+        return `/site/${websiteSlug}/${url}`;
+      }
+
+      // In builder context, keep URLs as-is for preview
+      return url;
+    };
+
+    const navStyle = {
+      backgroundColor: transparent
+        ? "transparent"
+        : backgroundColor || "#1f2937",
+      color: textColor || (transparent ? "#000000" : "#ffffff"),
+    };
+
+    const brandStyle = {
+      color: brandColor || textColor || (transparent ? "#000000" : "#ffffff"),
+    };
 
     return (
       <nav
+        style={navStyle}
         className={`
           w-full px-4 py-3 flex items-center justify-between 
-          ${transparent ? "bg-transparent" : "bg-gray-800 shadow-sm"} 
+          ${transparent ? "" : "shadow-sm"} 
           ${sticky ? "sticky top-0 z-10" : ""}
         `}>
         <div className="flex items-center">
-          <span className="text-xl font-bold">{brand || "Brand"}</span>
+          <span className="text-xl font-bold" style={brandStyle}>
+            {brand || "Brand"}
+          </span>
         </div>
+
+        {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-6">
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            Home
-          </a>
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            About
-          </a>
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            Services
-          </a>
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            Contact
-          </a>
+          {navItems.map((item, index) => {
+            if (item.type === "button") {
+              return (
+                <button
+                  key={index}
+                  className="px-4 py-2 rounded font-medium transition-colors"
+                  style={{
+                    backgroundColor: item.buttonColor || "#3b82f6",
+                    color: item.buttonTextColor || "#ffffff",
+                  }}
+                  onClick={e => e.preventDefault()}>
+                  {item.label || "Button"}
+                </button>
+              );
+            } else {
+              return (
+                <a
+                  key={index}
+                  href={transformUrl(item.url) || "#"}
+                  className="transition-colors"
+                  style={{
+                    color: textColor || (transparent ? "#000000" : "#ffffff"),
+                  }}
+                  onMouseEnter={e => {
+                    e.target.style.color = hoverColor || "#3b82f6";
+                  }}
+                  onMouseLeave={e => {
+                    e.target.style.color =
+                      textColor || (transparent ? "#000000" : "#ffffff");
+                  }}>
+                  {item.label || "Link"}
+                </a>
+              );
+            }
+          })}
         </div>
+
+        {/* Mobile Menu Button */}
         <div className="md:hidden">
-          <button>
+          <button
+            style={{
+              color: textColor || (transparent ? "#000000" : "#ffffff"),
+            }}>
             <svg
               className="w-6 h-6"
               fill="none"

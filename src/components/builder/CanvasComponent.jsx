@@ -5,6 +5,30 @@ import { useDrag, useDrop } from "react-dnd";
 import componentRenderers, {
   defaultRenderer,
 } from "../../lib/componentRenderers";
+import DropZone from "./DropZone";
+
+// Define which components can accept children
+const CONTAINER_COMPONENTS = new Set([
+  "container",
+  "columns",
+  "hero",
+  "section",
+  "card",
+  "modal",
+  "navbar",
+  "footer",
+]);
+
+// Helper function to check if a component can accept children
+const canAcceptChildren = componentType => {
+  return CONTAINER_COMPONENTS.has(componentType);
+};
+
+// Calculate next position for children within a parent
+const getNextChildPosition = children => {
+  if (!children || children.length === 0) return 0;
+  return Math.max(...children.map(c => c.position || 0)) + 1;
+};
 
 // For the builder, we need to modify the renderers to remove the dashed borders
 // that are only used for the builder interface
@@ -288,35 +312,98 @@ const builderComponentRenderers = {
   },
 
   navbar: ({ properties }) => {
-    const { brand, transparent, sticky } = properties;
+    const {
+      brand,
+      transparent,
+      sticky,
+      backgroundColor,
+      textColor,
+      brandColor,
+      hoverColor,
+      items = [],
+    } = properties;
+
+    // Default navigation items if none provided
+    const defaultItems = [
+      { label: "Home", url: "#", type: "link" },
+      { label: "About", url: "#", type: "link" },
+      { label: "Services", url: "#", type: "link" },
+      { label: "Contact", url: "#", type: "link" },
+    ];
+
+    const navItems = items.length > 0 ? items : defaultItems;
+
+    const navStyle = {
+      backgroundColor: transparent
+        ? "transparent"
+        : backgroundColor || "#1f2937",
+      color: textColor || (transparent ? "#000000" : "#ffffff"),
+    };
+
+    const brandStyle = {
+      color: brandColor || textColor || (transparent ? "#000000" : "#ffffff"),
+    };
 
     return (
       <nav
+        style={navStyle}
         className={`
           w-full px-4 py-3 flex items-center justify-between 
-          ${transparent ? "bg-transparent" : "bg-white dark:bg-gray-800"} 
+          ${transparent ? "" : "shadow-sm"} 
           ${sticky ? "sticky top-0 z-10" : ""}
           border border-dashed border-gray-300 dark:border-gray-600
         `}>
         <div className="flex items-center">
-          <span className="text-xl font-bold">{brand || "Brand"}</span>
+          <span className="text-xl font-bold" style={brandStyle}>
+            {brand || "Brand"}
+          </span>
         </div>
+
+        {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-6">
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            Home
-          </a>
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            About
-          </a>
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            Services
-          </a>
-          <a href="#" className="hover:text-[rgb(var(--primary))]">
-            Contact
-          </a>
+          {navItems.map((item, index) => {
+            if (item.type === "button") {
+              return (
+                <button
+                  key={index}
+                  className="px-4 py-2 rounded font-medium transition-colors"
+                  style={{
+                    backgroundColor: item.buttonColor || "#3b82f6",
+                    color: item.buttonTextColor || "#ffffff",
+                  }}
+                  onClick={e => e.preventDefault()}>
+                  {item.label || "Button"}
+                </button>
+              );
+            } else {
+              return (
+                <a
+                  key={index}
+                  href="#"
+                  className="transition-colors"
+                  style={{
+                    color: textColor || (transparent ? "#000000" : "#ffffff"),
+                  }}
+                  onMouseEnter={e => {
+                    e.target.style.color = hoverColor || "#3b82f6";
+                  }}
+                  onMouseLeave={e => {
+                    e.target.style.color =
+                      textColor || (transparent ? "#000000" : "#ffffff");
+                  }}>
+                  {item.label || "Link"}
+                </a>
+              );
+            }
+          })}
         </div>
+
+        {/* Mobile Menu Button */}
         <div className="md:hidden">
-          <button>
+          <button
+            style={{
+              color: textColor || (transparent ? "#000000" : "#ffffff"),
+            }}>
             <svg
               className="w-6 h-6"
               fill="none"
@@ -530,22 +617,35 @@ export default function CanvasComponent({
     }),
   }));
 
-  // Prevent dropping on invalid targets
+  // Only allow dropping if this component can accept children
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: ["COMPONENT", "CANVAS_COMPONENT"],
+    canDrop: item => {
+      // Prevent self-drop
+      if (item.id === component.id) return false;
+
+      // Only allow drops into container components
+      return canAcceptChildren(component.type);
+    },
     drop: (item, monitor) => {
       if (item.id === component.id) {
         return; // Prevent self-drop
       }
 
+      // Only proceed if this component can accept children
+      if (!canAcceptChildren(component.type)) {
+        return;
+      }
+
+      const nextPosition = getNextChildPosition(children);
+
       if (item.type && !item.id) {
-        const childrenCount = (children || []).length;
-        onAddChild(item.type, childrenCount);
+        onAddChild(item.type, nextPosition);
         return;
       }
 
       if (item.id) {
-        onMove(item.id, 0, component.id);
+        onMove(item.id, nextPosition, component.id);
         return;
       }
     },
@@ -561,6 +661,19 @@ export default function CanvasComponent({
   // Apply drag and drop refs
   drag(drop(ref));
 
+  // Helper function to handle dropping between children
+  const handleChildDropAtPosition = (
+    componentTypeOrId,
+    position,
+    isMove = false,
+  ) => {
+    if (isMove) {
+      onMove(componentTypeOrId, position, component.id);
+    } else {
+      onAddChild(componentTypeOrId, position);
+    }
+  };
+
   // Get the appropriate renderer for this component type
   const renderComponent =
     builderComponentRenderers[component.type] || defaultRenderer;
@@ -569,6 +682,47 @@ export default function CanvasComponent({
   const handleClick = e => {
     e.stopPropagation();
     onSelect();
+  };
+
+  // Render children with drop zones if this is a container
+  const renderChildrenWithDropZones = () => {
+    if (
+      !canAcceptChildren(component.type) ||
+      !children ||
+      children.length === 0
+    ) {
+      return children;
+    }
+
+    const sortedChildren = [...children].sort(
+      (a, b) => (a.position || 0) - (b.position || 0),
+    );
+    const result = [];
+
+    // Add drop zone at the beginning
+    result.push(
+      <DropZone
+        key={`dropzone-start-${component.id}`}
+        onDrop={handleChildDropAtPosition}
+        position={0}
+        parentId={component.id}
+      />,
+    );
+
+    // Add children with drop zones after each
+    sortedChildren.forEach((child, index) => {
+      result.push(child);
+      result.push(
+        <DropZone
+          key={`dropzone-after-${child.id}`}
+          onDrop={handleChildDropAtPosition}
+          position={index + 1}
+          parentId={component.id}
+        />,
+      );
+    });
+
+    return result;
   };
 
   return (
@@ -590,7 +744,7 @@ export default function CanvasComponent({
       <div className={`${isSelected ? "pointer-events-none" : ""}`}>
         {renderComponent({
           properties: component.properties || {},
-          children,
+          children: renderChildrenWithDropZones(),
         })}
       </div>
     </div>

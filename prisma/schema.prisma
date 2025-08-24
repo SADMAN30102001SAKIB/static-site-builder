@@ -64,6 +64,13 @@ model Website {
   published   Boolean  @default(false)
   customDomain String? @unique
   domainVerified Boolean @default(false)
+  
+  // Template fields
+  isTemplate  Boolean  @default(false)  // Whether this website is shared as a template
+  templateDescription String? // Description for template gallery
+  templateTags String? // Comma-separated tags for categorization
+  forkCount   Int      @default(0)     // Number of times this template has been forked
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String

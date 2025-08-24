@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -79,7 +79,7 @@ export default function PageBuilderEditor({ params }) {
         properties: getDefaultPropertiesForType(componentType),
       };
 
-      const response = await fetch(`/api/components`, {
+      const response = await fetch(`/api/components/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,8 +93,8 @@ export default function PageBuilderEditor({ params }) {
 
       const data = await response.json();
 
-      // Update local state with the new component
-      setComponents(prev => [...prev, data.component]);
+      // Update local state with all components (including position updates)
+      setComponents(data.components);
 
       // Select the newly added component
       setSelectedComponentId(data.component.id);
@@ -178,47 +178,104 @@ export default function PageBuilderEditor({ params }) {
     try {
       setSavedStatus("saving");
 
-      const updates = {
-        position: newPosition,
-        parentId: newParentId,
-      };
-
-      const response = await fetch(`/api/components/${componentId}`, {
-        method: "PATCH",
+      const response = await fetch(`/api/components/reorder`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({
+          componentId,
+          newPosition,
+          newParentId,
+          pageId: page.id,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to move component");
+        throw new Error("Failed to reorder component");
       }
 
       const data = await response.json();
 
-      // Update local state with the moved component
-      setComponents(prev => {
-        const updated = prev.map(component => {
-          if (component.id === componentId) {
-            return {
-              ...component,
-              position: newPosition,
-              parentId: newParentId,
-            };
-          }
-          return component;
-        });
-
-        // Sort by position
-        return updated.sort((a, b) => a.position - b.position);
-      });
+      // Update local state with all reordered components
+      setComponents(data.components);
 
       setSavedStatus("saved");
     } catch (error) {
       console.error("Error moving component:", error);
       setSavedStatus("error");
     }
+  };
+
+  // Normalize component positions (fix gaps and ensure sequential ordering)
+  const handleNormalizePositions = async () => {
+    if (!page) return;
+
+    try {
+      setSavedStatus("saving");
+
+      const response = await fetch(`/api/components/normalize`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pageId: page.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to normalize positions");
+      }
+
+      const data = await response.json();
+
+      // Update local state with normalized components
+      setComponents(data.components);
+
+      // Show success message
+      console.log(`✅ ${data.message}`);
+
+      setSavedStatus("saved");
+    } catch (error) {
+      console.error("Error normalizing positions:", error);
+      setSavedStatus("error");
+    }
+  };
+
+  // Helper function to detect if there are position gaps or issues
+  const hasPositionIssues = () => {
+    if (!components.length) return false;
+
+    // Group components by parent
+    const componentsByParent = {};
+    components.forEach(comp => {
+      const parentKey = comp.parentId || "root";
+      if (!componentsByParent[parentKey]) {
+        componentsByParent[parentKey] = [];
+      }
+      componentsByParent[parentKey].push(comp);
+    });
+
+    // Check each parent group for position issues
+    for (const group of Object.values(componentsByParent)) {
+      const positions = group.map(c => c.position || 0).sort((a, b) => a - b);
+
+      // Check for gaps in positions (should be 0, 1, 2, 3...)
+      for (let i = 0; i < positions.length; i++) {
+        if (positions[i] !== i) {
+          return true; // Gap detected
+        }
+      }
+
+      // Check for duplicate positions
+      const uniquePositions = new Set(positions);
+      if (uniquePositions.size !== positions.length) {
+        return true; // Duplicates detected
+      }
+    }
+
+    return false;
   };
 
   // Get default properties based on component type
@@ -281,6 +338,22 @@ export default function PageBuilderEditor({ params }) {
         return {
           label: "Checkbox option",
           required: false,
+        };
+      case "navbar":
+        return {
+          brand: "Your Brand",
+          transparent: false,
+          sticky: false,
+          backgroundColor: "#1f2937",
+          textColor: "#ffffff",
+          brandColor: "#ffffff",
+          hoverColor: "#3b82f6",
+          items: [
+            { label: "Home", url: "#", type: "link" },
+            { label: "About", url: "#about", type: "link" },
+            { label: "Services", url: "#services", type: "link" },
+            { label: "Contact", url: "#contact", type: "link" },
+          ],
         };
       default:
         return {};
@@ -461,6 +534,38 @@ export default function PageBuilderEditor({ params }) {
               </svg>
               Preview
             </button>
+
+            {/* Normalize Positions Button - Show in development or when positioning issues detected */}
+            {(process.env.NODE_ENV === "development" ||
+              hasPositionIssues()) && (
+              <button
+                onClick={handleNormalizePositions}
+                disabled={savedStatus === "saving"}
+                className={`flex items-center px-3 py-1.5 text-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  hasPositionIssues()
+                    ? "bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-200"
+                    : "bg-orange-100 hover:bg-orange-200 dark:bg-orange-900 dark:hover:bg-orange-800 text-orange-700 dark:text-orange-200"
+                }`}
+                title={
+                  hasPositionIssues()
+                    ? "⚠️ Position issues detected - Click to fix"
+                    : "Fix component positioning issues"
+                }>
+                <svg
+                  className="w-4 h-4 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                  />
+                </svg>
+                {hasPositionIssues() ? "⚠️ Fix Positions" : "Fix Positions"}
+              </button>
+            )}
           </div>
         </div>
       </header>

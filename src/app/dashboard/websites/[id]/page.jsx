@@ -7,11 +7,13 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import StatCard from "@/components/dashboard/StatCard";
 import Input from "@/components/ui/Input";
+import { useToast } from "@/hooks/use-toast";
 
 export default function WebsiteDetails({ params }) {
   const router = useRouter();
   const paramValues = use(params);
   const { id } = paramValues;
+  const { toast } = useToast();
   const [website, setWebsite] = useState(null);
   const [pages, setPages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,7 +130,23 @@ export default function WebsiteDetails({ params }) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update website");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || "Failed to update website";
+
+        // Handle user errors (4xx) vs server errors (5xx) differently
+        if (response.status >= 400 && response.status < 500) {
+          // User errors like conflicts - don't log to console
+          setSaveError(errorMessage);
+          toast({
+            title: "Update Failed",
+            description: errorMessage,
+            variant: "destructive",
+          });
+          return;
+        } else {
+          // Server errors - log to console
+          throw new Error(errorMessage);
+        }
       }
 
       const data = await response.json();
@@ -139,9 +157,20 @@ export default function WebsiteDetails({ params }) {
       }));
 
       setIsEditing(false);
+      toast({
+        title: "Website Updated",
+        description: "Your website details have been saved successfully.",
+        variant: "success",
+      });
     } catch (err) {
+      // Only server errors reach here now
       console.error("Error updating website:", err);
-      setSaveError(err.message);
+      setSaveError("An unexpected error occurred. Please try again.");
+      toast({
+        title: "Update Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -248,9 +277,40 @@ export default function WebsiteDetails({ params }) {
             </svg>
             Back
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {website.name}
-          </h1>
+          <div className="flex items-center gap-2">
+            {isEditing ? (
+              <Input
+                value={editedName}
+                onChange={e => setEditedName(e.target.value)}
+                className="text-2xl font-bold"
+                placeholder="Website name"
+              />
+            ) : (
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {website.name}
+              </h1>
+            )}
+            {!isEditing && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="p-1 h-8 w-8">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </Button>
+            )}
+          </div>
           {website.published && (
             <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
               Published
@@ -258,80 +318,36 @@ export default function WebsiteDetails({ params }) {
           )}
         </div>
         <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              // Find the homepage first, then any page, or create a new one
-              const homePage = pages.find(p => p.isHomePage);
-              const firstPage = homePage || pages.find(p => p.id);
-              if (firstPage) {
-                router.push(`/builder/${id}/pages/${firstPage.id}`);
-              } else {
-                // Handle case where no pages exist
-                router.push(`/dashboard/websites/${id}/pages/new`);
-              }
-            }}>
-            <svg
-              className="w-5 h-5 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              />
-            </svg>
-            Edit Website
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => window.open(`/preview/${id}`, "_blank")}>
-            <svg
-              className="w-5 h-5 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-            Preview
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => window.open(`/site/${website.slug}`, "_blank")}
-            disabled={!website.published}>
-            <svg
-              className="w-5 h-5 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-              />
-            </svg>
-            View Site
-          </Button>
-          <Button
-            variant={website.published ? "danger-ghost" : "primary"}
-            onClick={handlePublishToggle}
-            isLoading={isPublishing}>
-            {website.published ? (
-              <>
+          {isEditing ? (
+            <>
+              <Button
+                variant="primary"
+                onClick={handleSaveChanges}
+                disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCancelEditing}
+                disabled={isSaving}>
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Find the homepage first, then any page, or create a new one
+                  const homePage = pages.find(p => p.isHomePage);
+                  const firstPage = homePage || pages.find(p => p.id);
+                  if (firstPage) {
+                    router.push(`/builder/${id}/pages/${firstPage.id}`);
+                  } else {
+                    // Handle case where no pages exist
+                    router.push(`/dashboard/websites/${id}/pages/new`);
+                  }
+                }}>
                 <svg
                   className="w-5 h-5 mr-1"
                   fill="none"
@@ -341,13 +357,14 @@ export default function WebsiteDetails({ params }) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                   />
                 </svg>
-                Unpublish
-              </>
-            ) : (
-              <>
+                Edit Website
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => window.open(`/preview/${id}`, "_blank")}>
                 <svg
                   className="w-5 h-5 mr-1"
                   fill="none"
@@ -366,10 +383,72 @@ export default function WebsiteDetails({ params }) {
                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                   />
                 </svg>
-                Publish
-              </>
-            )}
-          </Button>
+                Preview
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => window.open(`/site/${website.slug}`, "_blank")}
+                disabled={!website.published}>
+                <svg
+                  className="w-5 h-5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                  />
+                </svg>
+                View Site
+              </Button>
+              <Button
+                variant={website.published ? "danger-ghost" : "primary"}
+                onClick={handlePublishToggle}
+                isLoading={isPublishing}>
+                {website.published ? (
+                  <>
+                    <svg
+                      className="w-5 h-5 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                      />
+                    </svg>
+                    Unpublish
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-5 h-5 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                    Publish
+                  </>
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
