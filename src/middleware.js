@@ -147,7 +147,12 @@ export async function middleware(request) {
         rewriteUrl: url.href,
       });
 
-      return NextResponse.rewrite(url);
+      // Add header to indicate this came from a custom domain
+      const rewriteResponse = NextResponse.rewrite(url);
+      rewriteResponse.headers.set("x-custom-domain", "true");
+      rewriteResponse.headers.set("x-original-host", hostname);
+
+      return rewriteResponse;
     } else if (lookupResult?.unverifiedWebsite) {
       const unverified = lookupResult.unverifiedWebsite;
       const reason = !unverified.domainVerified

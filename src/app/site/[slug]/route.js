@@ -8,7 +8,12 @@ export async function GET(request, { params }) {
   try {
     const { slug } = await params;
 
+    // Check if this request came from a custom domain
+    const isCustomDomain = request.headers.get("x-custom-domain") === "true";
+    const originalHost = request.headers.get("x-original-host");
+
     console.log("Looking for website with slug:", slug);
+    console.log("Custom domain access:", { isCustomDomain, originalHost });
 
     // Find the website by slug or name
     let website = await prisma.website.findUnique({
@@ -154,7 +159,12 @@ export async function GET(request, { params }) {
     }
 
     // Generate HTML for the page (same as preview)
-    const pageHtml = generateFullPageHtml(homePage, website, false);
+    const pageHtml = generateFullPageHtml(
+      homePage,
+      website,
+      false,
+      isCustomDomain,
+    );
 
     return new Response(pageHtml, {
       headers: { "Content-Type": "text/html" },

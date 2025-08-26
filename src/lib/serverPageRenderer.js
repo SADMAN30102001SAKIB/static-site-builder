@@ -58,7 +58,12 @@ function reactElementToHtml(element) {
   return `<${type}${attrsStr ? " " + attrsStr : ""}>${childrenHtml}</${type}>`;
 }
 
-function renderComponentTree(components, website, parentId = null) {
+function renderComponentTree(
+  components,
+  website,
+  parentId = null,
+  isCustomDomain = false,
+) {
   const componentsAtLevel = components.filter(c => c.parentId === parentId);
   let html = "";
 
@@ -68,7 +73,7 @@ function renderComponentTree(components, website, parentId = null) {
 
     const childElements =
       childComponents.length > 0
-        ? renderComponentTree(components, website, component.id)
+        ? renderComponentTree(components, website, component.id, isCustomDomain)
         : null;
 
     // Parse properties from JSON string to object
@@ -92,6 +97,7 @@ function renderComponentTree(components, website, parentId = null) {
       children: childElements,
       type: component.type,
       websiteSlug: website?.slug, // Pass website slug for URL transformation
+      isCustomDomain: isCustomDomain, // Pass custom domain flag
     });
 
     // Convert to HTML - no extra container wrapping needed
@@ -102,7 +108,7 @@ function renderComponentTree(components, website, parentId = null) {
   return html;
 }
 
-export function renderPageToHtml(page, website) {
+export function renderPageToHtml(page, website, isCustomDomain = false) {
   if (!page || !page.components) {
     return "<div>No content found</div>";
   }
@@ -110,11 +116,18 @@ export function renderPageToHtml(page, website) {
   return `<div class="space-y-6 px-6 sm:px-12 lg:px-20 xl:px-24 max-w-7xl mx-auto">${renderComponentTree(
     page.components,
     website,
+    null,
+    isCustomDomain,
   )}</div>`;
 }
 
-export function generateFullPageHtml(page, website, isPreview = false) {
-  const componentsHtml = renderPageToHtml(page, website);
+export function generateFullPageHtml(
+  page,
+  website,
+  isPreview = false,
+  isCustomDomain = false,
+) {
+  const componentsHtml = renderPageToHtml(page, website, isCustomDomain);
   const allPages = website.pages;
 
   // Generate navigation for preview mode

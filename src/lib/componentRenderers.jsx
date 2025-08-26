@@ -565,7 +565,7 @@ const componentRenderers = {
     );
   },
 
-  navbar: ({ properties, websiteSlug }) => {
+  navbar: ({ properties, websiteSlug, isCustomDomain }) => {
     const {
       brand,
       transparent,
@@ -593,8 +593,13 @@ const componentRenderers = {
         return url; // External links or anchors remain unchanged
       }
 
+      // If accessing via custom domain, keep relative URLs as-is
+      if (isCustomDomain) {
+        return url;
+      }
+
       if (websiteSlug) {
-        // In live site context, transform relative URLs
+        // In main app context, transform relative URLs to include site path
         if (url === "/") {
           return `/site/${websiteSlug}`;
         }
