@@ -34,68 +34,6 @@ function StatusBadge({ verified, isLoading }) {
   );
 }
 
-function ErrorDisplay({ error, onRetry, onDismiss }) {
-  if (!error) return null;
-
-  const isNetworkError = error.code === "NETWORK_ERROR";
-  const isConfigError = error.code === "MISSING_CREDENTIALS";
-
-  return (
-    <div className="rounded-md bg-red-50 p-4 mb-6 border border-red-200">
-      <div className="flex">
-        <div className="flex-shrink-0">
-          <svg
-            className="h-5 w-5 text-red-400"
-            viewBox="0 0 20 20"
-            fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </div>
-        <div className="ml-3 flex-1">
-          <h3 className="text-sm font-medium text-red-800">
-            {isConfigError
-              ? "Configuration Error"
-              : isNetworkError
-              ? "Network Error"
-              : "Error"}
-          </h3>
-          <div className="mt-2 text-sm text-red-700">
-            <p>{error.message}</p>
-            {isConfigError && (
-              <p className="mt-1 text-xs">
-                Please check your Vercel API credentials in the environment
-                variables.
-              </p>
-            )}
-          </div>
-          {(onRetry || onDismiss) && (
-            <div className="mt-4 flex space-x-2">
-              {onRetry && !isConfigError && (
-                <button
-                  onClick={onRetry}
-                  className="text-sm bg-red-100 text-red-800 hover:bg-red-200 px-3 py-1 rounded-md transition-colors">
-                  Try Again
-                </button>
-              )}
-              {onDismiss && (
-                <button
-                  onClick={onDismiss}
-                  className="text-sm text-red-600 hover:text-red-800">
-                  Dismiss
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function DomainsPage() {
   const { data: session, status } = useSession();
   const [domains, setDomains] = useState([]);
@@ -108,8 +46,18 @@ export default function DomainsPage() {
     customDomain: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [verifyingDomains, setVerifyingDomains] = useState(new Set());
-  const [removingDomains, setRemovingDomains] = useState(new Set());
+
+  // Helper function to determine if domain is a subdomain
+  const isSubdomain = domain => {
+    const parts = domain.split(".");
+    return parts.length > 2;
+  };
+
+  // Helper function to get subdomain name
+  const getSubdomainName = domain => {
+    const parts = domain.split(".");
+    return parts.length > 2 ? parts[0] : "";
+  };
 
   const fetchData = async () => {
     if (!session) return;
@@ -427,60 +375,66 @@ export default function DomainsPage() {
                             <strong>Setup Required:</strong> Add these DNS
                             records to your domain provider:
                           </p>
-                          <div className="mt-2 space-y-3">
-                            <div className="text-xs bg-white dark:bg-gray-800 p-3 rounded border">
-                              <div className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Option 1: A Record (Recommended)
-                              </div>
-                              <div className="font-mono space-y-1">
-                                <div>
-                                  Type:{" "}
-                                  <span className="text-blue-600 font-semibold">
-                                    A
-                                  </span>
+                          <div className="mt-2">
+                            {isSubdomain(domain.customDomain) ? (
+                              <div className="text-xs bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                  CNAME Record (For Subdomain)
                                 </div>
-                                <div>
-                                  Name:{" "}
-                                  <span className="text-blue-600 font-semibold">
-                                    @
-                                  </span>
-                                </div>
-                                <div>
-                                  Value:{" "}
-                                  <span className="text-blue-600 font-semibold">
-                                    216.198.79.1
-                                  </span>
-                                </div>
-                                <div className="text-gray-500 text-xs mt-1">
-                                  TTL: 3600 (or default)
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-xs bg-white dark:bg-gray-800 p-3 rounded border opacity-75">
-                              <div className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Option 2: CNAME (Alternative)
-                              </div>
-                              <div className="font-mono space-y-1">
-                                <div>
-                                  Type:{" "}
-                                  <span className="text-purple-600 font-semibold">
-                                    CNAME
-                                  </span>
-                                </div>
-                                <div>
-                                  Name:{" "}
-                                  <span className="text-purple-600 font-semibold">
-                                    www
-                                  </span>
-                                </div>
-                                <div>
-                                  Value:{" "}
-                                  <span className="text-purple-600 font-semibold">
-                                    cname.vercel-dns.com
-                                  </span>
+                                <div className="font-mono space-y-1">
+                                  <div>
+                                    Type:{" "}
+                                    <span className="text-purple-600 font-semibold">
+                                      CNAME
+                                    </span>
+                                  </div>
+                                  <div>
+                                    Host:{" "}
+                                    <span className="text-purple-600 font-semibold">
+                                      {getSubdomainName(domain.customDomain)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    Value:{" "}
+                                    <span className="text-purple-600 font-semibold">
+                                      f69a4e046fbb9111.vercel-dns-017.com
+                                    </span>
+                                  </div>
+                                  <div className="text-gray-500 text-xs mt-1">
+                                    TTL: 1800 (or automatic)
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            ) : (
+                              <div className="text-xs bg-white dark:bg-gray-800 p-3 rounded border">
+                                <div className="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                  A Record (For Base Domain)
+                                </div>
+                                <div className="font-mono space-y-1">
+                                  <div>
+                                    Type:{" "}
+                                    <span className="text-blue-600 font-semibold">
+                                      A
+                                    </span>
+                                  </div>
+                                  <div>
+                                    Host:{" "}
+                                    <span className="text-blue-600 font-semibold">
+                                      @
+                                    </span>
+                                  </div>
+                                  <div>
+                                    Value:{" "}
+                                    <span className="text-blue-600 font-semibold">
+                                      216.198.79.1
+                                    </span>
+                                  </div>
+                                  <div className="text-gray-500 text-xs mt-1">
+                                    TTL: 1800 (or automatic)
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded">
                             <p className="text-xs text-green-800 dark:text-green-200">
@@ -549,7 +503,8 @@ export default function DomainsPage() {
                 <div>
                   <strong>Add your domain above</strong> - Enter the domain you
                   want to connect to your website. We'll automatically register
-                  it with Vercel for you!
+                  it with Vercel for you! You can add either a base domain (like
+                  sadman.me) or a subdomain (like portfolio.sadman.me).
                 </div>
               </div>
               <div className="flex gap-3">
@@ -557,16 +512,28 @@ export default function DomainsPage() {
                   2
                 </span>
                 <div>
-                  <strong>Configure DNS</strong> - Add an A record in your
-                  domain registrar:
+                  <strong>Configure DNS</strong> - Add the appropriate DNS
+                  record in your domain registrar:
                   <br />
-                  <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded font-semibold text-blue-600">
-                    Type: A, Name: @, Value: 216.198.79.1
-                  </code>
-                  <br />
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    (Alternative: CNAME to cname.vercel-dns.com)
-                  </span>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <strong>For Base Domains (e.g., sadman.me):</strong>
+                      <br />
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded font-semibold text-blue-600">
+                        Type: A, Host: @, Value: 216.198.79.1, TTL: 1800
+                      </code>
+                    </div>
+                    <div>
+                      <strong>
+                        For Subdomains (e.g., portfolio.sadman.me):
+                      </strong>
+                      <br />
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded font-semibold text-purple-600">
+                        Type: CNAME, Host: [subdomain], Value:
+                        f69a4e046fbb9111.vercel-dns-017.com, TTL: 1800
+                      </code>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-3">
