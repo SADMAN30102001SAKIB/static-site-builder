@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+import { createPool } from "@vercel/postgres";
+
+// Create a connection pool using DATABASE_URL
+const pool = createPool({
+  connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+});
 
 // Edge-compatible database query function
 async function queryDatabase(hostname) {
   try {
     console.log(`🔍 [MIDDLEWARE] Querying database for hostname: ${hostname}`);
+    console.log(
+      `🔗 [MIDDLEWARE] Database URL configured: ${!!process.env.DATABASE_URL}`,
+    );
 
     // Query for verified and published website
-    const result = await sql`
+    const result = await pool.sql`
       SELECT id, slug, name, "domainVerified", published
       FROM "Website" 
       WHERE "customDomain" = ${hostname}
