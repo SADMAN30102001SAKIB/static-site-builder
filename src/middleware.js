@@ -1,7 +1,36 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+// Edge-compatible database query function
+async function queryDatabase(hostname) {
+  try {
+    // For Edge Runtime, we'll call our API endpoint
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+    const response = await fetch(`${baseUrl}/api/middleware/lookup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${
+          process.env.MIDDLEWARE_SECRET || "dev-secret"
+        }`,
+      },
+      body: JSON.stringify({ hostname }),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `API call failed: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Database query failed:", error);
+    return null;
+  }
+}
 
 // Enhanced logging that works on Vercel
 function middlewareLog(level, message, data = {}) {
@@ -79,73 +108,50 @@ export async function middleware(request) {
       queryStart: new Date().toISOString(),
     });
 
-    const website = await prisma.website.findFirst({
-      where: {
-        customDomain: hostname,
-        domainVerified: true,
-        published: true,
-      },
-    });
+    const lookupResult = await queryDatabase(hostname);
 
     middlewareLog("info", "🔍 [MIDDLEWARE] Database query completed", {
-      websiteFound: !!website,
-      websiteId: website?.id,
-      websiteSlug: website?.slug,
+      websiteFound: !!lookupResult?.website,
+      websiteId: lookupResult?.website?.id,
+      websiteSlug: lookupResult?.website?.slug,
+      shouldRewrite: lookupResult?.shouldRewrite,
     });
 
-    if (website) {
+    if (lookupResult?.shouldRewrite && lookupResult?.website) {
       // Rewrite to the site route with the website slug
       const url = request.nextUrl.clone();
-      url.pathname = `/site/${website.slug}${pathname}`;
+      url.pathname = `/site/${lookupResult.website.slug}${pathname}`;
 
       middlewareLog("info", "🌐 [MIDDLEWARE] Custom domain rewrite", {
         from: `${hostname}${pathname}`,
-        to: `/site/${website.slug}${pathname}`,
+        to: `/site/${lookupResult.website.slug}${pathname}`,
         rewriteUrl: url.href,
       });
 
       return NextResponse.rewrite(url);
-    } else {
-      // Check if domain exists but is not verified/published
-      const unverifiedWebsite = await prisma.website.findFirst({
-        where: {
-          customDomain: hostname,
+    } else if (lookupResult?.unverifiedWebsite) {
+      const unverified = lookupResult.unverifiedWebsite;
+      const reason = !unverified.domainVerified
+        ? "Domain not verified"
+        : "Website not published";
+
+      middlewareLog("warn", "⚠️ [MIDDLEWARE] Domain found but not accessible", {
+        hostname,
+        reason,
+      });
+
+      return new Response(
+        `<html><body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+          <h1 style="color: #f59e0b;">Domain Configuration Pending</h1>
+          <p>This domain is configured but not yet ready.</p>
+          <p><strong>Reason:</strong> ${reason}</p>
+          <p>Please contact the site owner to complete the setup.</p>
+        </body></html>`,
+        {
+          headers: { "Content-Type": "text/html" },
+          status: 503,
         },
-      });
-
-      middlewareLog("info", "🔍 [MIDDLEWARE] Unverified website check", {
-        found: !!unverifiedWebsite,
-        verified: unverifiedWebsite?.domainVerified,
-        published: unverifiedWebsite?.published,
-      });
-
-      if (unverifiedWebsite) {
-        const reason = !unverifiedWebsite.domainVerified
-          ? "Domain not verified"
-          : "Website not published";
-
-        middlewareLog(
-          "warn",
-          "⚠️ [MIDDLEWARE] Domain found but not accessible",
-          {
-            hostname,
-            reason,
-          },
-        );
-
-        return new Response(
-          `<html><body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h1 style="color: #f59e0b;">Domain Configuration Pending</h1>
-            <p>This domain is configured but not yet ready.</p>
-            <p><strong>Reason:</strong> ${reason}</p>
-            <p>Please contact the site owner to complete the setup.</p>
-          </body></html>`,
-          {
-            headers: { "Content-Type": "text/html" },
-            status: 503,
-          },
-        );
-      }
+      );
     }
   } catch (error) {
     middlewareLog("error", "❌ [MIDDLEWARE] Domain lookup error", {
