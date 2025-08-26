@@ -100,7 +100,7 @@ export async function middleware(request) {
   // Skip only for the main Vercel app domain, not custom domains
   const isMainVercelDomain =
     hostname.endsWith(".vercel.app") &&
-    !hostname.includes("portfolio.sadman.me"); // Add other custom domains here if needed
+    !hostname.includes("staticsitebuilder.sadman.me"); // Add other custom domains here if needed
 
   if (isMainVercelDomain) {
     middlewareLog(
