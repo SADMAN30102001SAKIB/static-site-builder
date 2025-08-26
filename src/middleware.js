@@ -1,34 +1,45 @@
 import { NextResponse } from "next/server";
+import { sql } from "@vercel/postgres";
 
 // Edge-compatible database query function
 async function queryDatabase(hostname) {
   try {
-    // For Edge Runtime, we'll call our API endpoint
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXTAUTH_URL || "http://localhost:3000";
+    console.log(`🔍 [MIDDLEWARE] Querying database for hostname: ${hostname}`);
 
-    const response = await fetch(`${baseUrl}/api/middleware/lookup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${
-          process.env.MIDDLEWARE_SECRET || "dev-secret"
-        }`,
-      },
-      body: JSON.stringify({ hostname }),
-    });
+    // Query for verified and published website
+    const result = await sql`
+      SELECT id, slug, name, "domainVerified", published
+      FROM "Website" 
+      WHERE "customDomain" = ${hostname}
+      LIMIT 1
+    `;
 
-    if (!response.ok) {
-      throw new Error(
-        `API call failed: ${response.status} ${response.statusText}`,
-      );
+    const website = result.rows[0];
+
+    if (!website) {
+      console.log(`📊 [MIDDLEWARE] No website found for: ${hostname}`);
+      return { website: null, unverifiedWebsite: null, shouldRewrite: false };
     }
 
-    return await response.json();
+    const shouldRewrite = website.domainVerified && website.published;
+
+    console.log(`📊 [MIDDLEWARE] Website found:`, {
+      id: website.id,
+      slug: website.slug,
+      verified: website.domainVerified,
+      published: website.published,
+      shouldRewrite,
+    });
+
+    return {
+      website: shouldRewrite ? website : null,
+      unverifiedWebsite: !shouldRewrite ? website : null,
+      shouldRewrite,
+      rewritePath: shouldRewrite ? `/site/${website.slug}` : null,
+    };
   } catch (error) {
-    console.error("Database query failed:", error);
-    return null;
+    console.error("❌ [MIDDLEWARE] Database query failed:", error);
+    return { website: null, unverifiedWebsite: null, shouldRewrite: false };
   }
 }
 
