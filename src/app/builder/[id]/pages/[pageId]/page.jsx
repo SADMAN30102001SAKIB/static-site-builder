@@ -207,75 +207,116 @@ export default function PageBuilderEditor({ params }) {
     }
   };
 
-  // Normalize component positions (fix gaps and ensure sequential ordering)
-  const handleNormalizePositions = async () => {
-    if (!page) return;
-
+  // Move component up (decrease position)
+  const handleMoveUp = async componentId => {
     try {
-      setSavedStatus("saving");
+      const component = components.find(c => c.id === componentId);
+      if (!component) return;
 
-      const response = await fetch(`/api/components/normalize`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          pageId: page.id,
-        }),
-      });
+      // Get siblings (components with same parent)
+      const siblings = components
+        .filter(c => c.parentId === component.parentId)
+        .sort((a, b) => (a.position || 0) - (b.position || 0));
 
-      if (!response.ok) {
-        throw new Error("Failed to normalize positions");
-      }
+      const currentIndex = siblings.findIndex(c => c.id === componentId);
 
-      const data = await response.json();
+      // Can't move up if already at the top
+      if (currentIndex <= 0) return;
 
-      // Update local state with normalized components
-      setComponents(data.components);
-
-      // Show success message
-      console.log(`✅ ${data.message}`);
-
-      setSavedStatus("saved");
+      // Swap positions with previous sibling
+      const prevSibling = siblings[currentIndex - 1];
+      await handleMoveComponent(
+        componentId,
+        prevSibling.position,
+        component.parentId,
+      );
     } catch (error) {
-      console.error("Error normalizing positions:", error);
-      setSavedStatus("error");
+      console.error("Error moving component up:", error);
     }
   };
 
-  // Helper function to detect if there are position gaps or issues
-  const hasPositionIssues = () => {
-    if (!components.length) return false;
+  // Move component down (increase position)
+  const handleMoveDown = async componentId => {
+    try {
+      const component = components.find(c => c.id === componentId);
+      if (!component) return;
 
-    // Group components by parent
-    const componentsByParent = {};
-    components.forEach(comp => {
-      const parentKey = comp.parentId || "root";
-      if (!componentsByParent[parentKey]) {
-        componentsByParent[parentKey] = [];
-      }
-      componentsByParent[parentKey].push(comp);
-    });
+      // Get siblings (components with same parent)
+      const siblings = components
+        .filter(c => c.parentId === component.parentId)
+        .sort((a, b) => (a.position || 0) - (b.position || 0));
 
-    // Check each parent group for position issues
-    for (const group of Object.values(componentsByParent)) {
-      const positions = group.map(c => c.position || 0).sort((a, b) => a - b);
+      const currentIndex = siblings.findIndex(c => c.id === componentId);
 
-      // Check for gaps in positions (should be 0, 1, 2, 3...)
-      for (let i = 0; i < positions.length; i++) {
-        if (positions[i] !== i) {
-          return true; // Gap detected
-        }
-      }
+      // Can't move down if already at the bottom
+      if (currentIndex >= siblings.length - 1) return;
 
-      // Check for duplicate positions
-      const uniquePositions = new Set(positions);
-      if (uniquePositions.size !== positions.length) {
-        return true; // Duplicates detected
-      }
+      // Swap positions with next sibling
+      const nextSibling = siblings[currentIndex + 1];
+      await handleMoveComponent(
+        componentId,
+        nextSibling.position,
+        component.parentId,
+      );
+    } catch (error) {
+      console.error("Error moving component down:", error);
     }
+  };
 
-    return false;
+  // Move component left (for container children - decrease horizontal position)
+  const handleMoveLeft = async componentId => {
+    try {
+      const component = components.find(c => c.id === componentId);
+      if (!component || !component.parentId) return;
+
+      // Get container children
+      const siblings = components
+        .filter(c => c.parentId === component.parentId)
+        .sort((a, b) => (a.position || 0) - (b.position || 0));
+
+      const currentIndex = siblings.findIndex(c => c.id === componentId);
+
+      // Can't move left if already at the leftmost position
+      if (currentIndex <= 0) return;
+
+      // Swap positions with left sibling
+      const leftSibling = siblings[currentIndex - 1];
+      await handleMoveComponent(
+        componentId,
+        leftSibling.position,
+        component.parentId,
+      );
+    } catch (error) {
+      console.error("Error moving component left:", error);
+    }
+  };
+
+  // Move component right (for container children - increase horizontal position)
+  const handleMoveRight = async componentId => {
+    try {
+      const component = components.find(c => c.id === componentId);
+      if (!component || !component.parentId) return;
+
+      // Get container children
+      const siblings = components
+        .filter(c => c.parentId === component.parentId)
+        .sort((a, b) => (a.position || 0) - (b.position || 0));
+
+      const currentIndex = siblings.findIndex(c => c.id === componentId);
+
+      // Can't move right if already at the rightmost position
+      if (currentIndex >= siblings.length - 1) return;
+
+      // Swap positions with right sibling
+      const rightSibling = siblings[currentIndex + 1];
+      await handleMoveComponent(
+        componentId,
+        rightSibling.position,
+        component.parentId,
+      );
+    } catch (error) {
+      console.error("Error moving component right:", error);
+    }
   };
 
   // Get default properties based on component type
@@ -534,38 +575,6 @@ export default function PageBuilderEditor({ params }) {
               </svg>
               Preview
             </button>
-
-            {/* Normalize Positions Button - Show in development or when positioning issues detected */}
-            {(process.env.NODE_ENV === "development" ||
-              hasPositionIssues()) && (
-              <button
-                onClick={handleNormalizePositions}
-                disabled={savedStatus === "saving"}
-                className={`flex items-center px-3 py-1.5 text-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  hasPositionIssues()
-                    ? "bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-200"
-                    : "bg-orange-100 hover:bg-orange-200 dark:bg-orange-900 dark:hover:bg-orange-800 text-orange-700 dark:text-orange-200"
-                }`}
-                title={
-                  hasPositionIssues()
-                    ? "⚠️ Position issues detected - Click to fix"
-                    : "Fix component positioning issues"
-                }>
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-                  />
-                </svg>
-                {hasPositionIssues() ? "⚠️ Fix Positions" : "Fix Positions"}
-              </button>
-            )}
           </div>
         </div>
       </header>
@@ -587,6 +596,10 @@ export default function PageBuilderEditor({ params }) {
               onAddComponent={handleAddComponent}
               onMoveComponent={handleMoveComponent}
               onUpdateComponent={handleUpdateComponent}
+              onMoveUp={handleMoveUp}
+              onMoveDown={handleMoveDown}
+              onMoveLeft={handleMoveLeft}
+              onMoveRight={handleMoveRight}
             />
           </div>
 
@@ -595,6 +608,7 @@ export default function PageBuilderEditor({ params }) {
             component={selectedComponent}
             onUpdateComponent={handleUpdateComponent}
             onDeleteComponent={handleDeleteComponent}
+            website={website}
           />
         </div>
       </DndProvider>

@@ -2,7 +2,6 @@
 
 import { useDrop } from "react-dnd";
 import CanvasComponent from "./CanvasComponent";
-import DropZone from "./DropZone";
 import { useCallback } from "react";
 
 export default function BuilderCanvas({
@@ -12,34 +11,21 @@ export default function BuilderCanvas({
   onAddComponent,
   onMoveComponent,
   onUpdateComponent,
+  onMoveUp,
+  onMoveDown,
+  onMoveLeft,
+  onMoveRight,
 }) {
-  // Handle dropping at specific positions
-  const handleDropAtPosition = (
-    componentTypeOrId,
-    position,
-    parentId,
-    isMove = false,
-  ) => {
-    if (isMove) {
-      // Moving existing component
-      onMoveComponent(componentTypeOrId, position, parentId);
-    } else {
-      // Adding new component
-      onAddComponent(componentTypeOrId, position, parentId);
-    }
+  // Simplified drop handler - only for new components from library
+  // All new components go to the end of the page by default
+  const handleDropNewComponent = componentType => {
+    // Send undefined position to let API append to the end
+    onAddComponent(componentType, undefined, null);
   };
 
-  // Calculate next position for root level components
-  const getNextRootPosition = () => {
-    const rootComponents = components.filter(c => !c.parentId);
-    return rootComponents.length > 0
-      ? Math.max(...rootComponents.map(c => c.position || 0)) + 1
-      : 0;
-  };
-
-  // Setup drop target for canvas
+  // Setup drop target for canvas - only accept new components from library
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
-    accept: ["COMPONENT", "CANVAS_COMPONENT"],
+    accept: ["COMPONENT"], // Only new components from library
     drop: (item, monitor) => {
       // If dropped directly on canvas (not on another component)
       const didDrop = monitor.didDrop();
@@ -47,17 +33,9 @@ export default function BuilderCanvas({
         return;
       }
 
-      const nextPosition = getNextRootPosition();
-
-      // If it's a new component from the library
+      // Only handle new components from library
       if (item.type && !item.id) {
-        onAddComponent(item.type, nextPosition, null);
-        return;
-      }
-
-      // If it's an existing component being moved
-      if (item.id) {
-        onMoveComponent(item.id, nextPosition, null);
+        handleDropNewComponent(item.type);
         return;
       }
     },
@@ -91,13 +69,14 @@ export default function BuilderCanvas({
 
   // Recursive component rendering
   const renderComponent = useCallback(
-    component => {
+    (component, parentType = null) => {
       const children = getChildComponents(component.id);
 
       return (
         <CanvasComponent
           key={component.id}
           component={component}
+          parentType={parentType}
           isSelected={selectedComponentId === component.id}
           onSelect={() => onSelectComponent(component.id)}
           onAddChild={(childType, position) => {
@@ -106,10 +85,14 @@ export default function BuilderCanvas({
           onMove={(draggedId, newPosition, newParentId) => {
             onMoveComponent(draggedId, newPosition, newParentId);
           }}
+          onMoveUp={() => onMoveUp && onMoveUp(component.id)}
+          onMoveDown={() => onMoveDown && onMoveDown(component.id)}
+          onMoveLeft={() => onMoveLeft && onMoveLeft(component.id)}
+          onMoveRight={() => onMoveRight && onMoveRight(component.id)}
           onUpdate={updates => {
             onUpdateComponent(component.id, updates);
           }}>
-          {children.map(renderComponent)}
+          {children.map(child => renderComponent(child, component.type))}
         </CanvasComponent>
       );
     },
@@ -120,6 +103,10 @@ export default function BuilderCanvas({
       onAddComponent,
       onMoveComponent,
       onUpdateComponent,
+      onMoveUp,
+      onMoveDown,
+      onMoveLeft,
+      onMoveRight,
     ],
   );
 
@@ -143,31 +130,12 @@ export default function BuilderCanvas({
           </p>
         </div>
 
-        {/* Components with Drop Zones */}
-        <div className="space-y-1">
+        {/* Components */}
+        <div className="space-y-4">
           {rootComponents.length > 0 ? (
-            <>
-              {/* Drop zone at the beginning */}
-              <DropZone
-                onDrop={handleDropAtPosition}
-                position={0}
-                parentId={null}
-              />
-
-              {rootComponents
-                .sort((a, b) => (a.position || 0) - (b.position || 0))
-                .map((component, index) => (
-                  <div key={component.id}>
-                    {renderComponent(component)}
-                    {/* Drop zone after each component - use index + 1 for sequential positioning */}
-                    <DropZone
-                      onDrop={handleDropAtPosition}
-                      position={index + 1}
-                      parentId={null}
-                    />
-                  </div>
-                ))}
-            </>
+            rootComponents
+              .sort((a, b) => (a.position || 0) - (b.position || 0))
+              .map(component => renderComponent(component))
           ) : (
             <div className="text-center py-20">
               <div className="text-gray-400 dark:text-gray-500 mb-4">

@@ -37,21 +37,40 @@ export async function POST(request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const insertPosition = position || 0;
+    // Calculate the actual next position from database to avoid race conditions
+    const existingComponents = await prisma.component.findMany({
+      where: {
+        pageId,
+        parentId,
+      },
+      select: { position: true },
+      orderBy: { position: "desc" },
+      take: 1,
+    });
+
+    // If no position specified, append to the end
+    const insertPosition =
+      position !== undefined
+        ? position
+        : existingComponents.length > 0
+        ? (existingComponents[0].position || 0) + 1
+        : 0;
 
     // Use a transaction to ensure atomicity
     const result = await prisma.$transaction(async tx => {
-      // Shift existing components at or after the insert position
-      await tx.component.updateMany({
-        where: {
-          pageId,
-          parentId,
-          position: { gte: insertPosition },
-        },
-        data: {
-          position: { increment: 1 },
-        },
-      });
+      // Only shift existing components if we're inserting in the middle (not appending)
+      if (position !== undefined) {
+        await tx.component.updateMany({
+          where: {
+            pageId,
+            parentId,
+            position: { gte: insertPosition },
+          },
+          data: {
+            position: { increment: 1 },
+          },
+        });
+      }
 
       // Create the new component at the desired position
       const component = await tx.component.create({

@@ -1,23 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { useDrag, useDrop } from "react-dnd";
+import { useDrop } from "react-dnd";
 import componentRenderers, {
   defaultRenderer,
 } from "../../lib/componentRenderers";
-import DropZone from "./DropZone";
 
-// Define which components can accept children
-const CONTAINER_COMPONENTS = new Set([
-  "container",
-  "columns",
-  "hero",
-  "section",
-  "card",
-  "modal",
-  "navbar",
-  "footer",
-]);
+// Define which components can accept children - ONLY container and columns!
+const CONTAINER_COMPONENTS = new Set(["container", "columns"]);
 
 // Helper function to check if a component can accept children
 const canAcceptChildren = componentType => {
@@ -45,7 +35,7 @@ const builderComponentRenderers = {
           backgroundColor: backgroundColor || "transparent",
           padding: padding || "20px",
         }}
-        className="border border-dashed border-gray-300 dark:border-gray-600">
+        className="border border-dashed border-gray-300 dark:border-gray-600 space-y-4">
         {children}
       </div>
     );
@@ -605,49 +595,45 @@ export default function CanvasComponent({
   onSelect,
   onAddChild,
   onMove,
+  onMoveUp,
+  onMoveDown,
+  onMoveLeft,
+  onMoveRight,
+  parentType,
 }) {
   const ref = useRef(null);
 
-  // Setup drag source
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "CANVAS_COMPONENT",
-    item: { id: component.id, type: component.type },
-    collect: monitor => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }));
+  // Remove drag functionality for existing components - they can't be dragged anymore
 
-  // Only allow dropping if this component can accept children
+  // Only allow dropping if this component can accept children and has less than 2 children
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
-    accept: ["COMPONENT", "CANVAS_COMPONENT"],
+    accept: ["COMPONENT"], // Only accept new components from library, not existing canvas components
     canDrop: item => {
-      // Prevent self-drop
-      if (item.id === component.id) return false;
-
       // Only allow drops into container components
-      return canAcceptChildren(component.type);
+      if (!canAcceptChildren(component.type)) return false;
+
+      // Check if columns already has 2 children (max limit for columns only)
+      if (component.type === "columns" && children && children.length >= 2)
+        return false;
+
+      return true;
     },
     drop: (item, monitor) => {
-      if (item.id === component.id) {
-        return; // Prevent self-drop
+      // Only allow new components from library (not existing components)
+      if (!item.type || item.id) {
+        return;
       }
 
-      // Only proceed if this component can accept children
-      if (!canAcceptChildren(component.type)) {
+      // Only proceed if this component can accept children and isn't full
+      if (
+        !canAcceptChildren(component.type) ||
+        (component.type === "columns" && children && children.length >= 2)
+      ) {
         return;
       }
 
       const nextPosition = getNextChildPosition(children);
-
-      if (item.type && !item.id) {
-        onAddChild(item.type, nextPosition);
-        return;
-      }
-
-      if (item.id) {
-        onMove(item.id, nextPosition, component.id);
-        return;
-      }
+      onAddChild(item.type, undefined); // Let API calculate the next position
     },
     collect: monitor => ({
       isOver: !!monitor.isOver(),
@@ -658,21 +644,8 @@ export default function CanvasComponent({
   // Highlight invalid drop areas
   const dropClass = isOver && !canDrop ? "bg-red-50 dark:bg-red-900/10" : "";
 
-  // Apply drag and drop refs
-  drag(drop(ref));
-
-  // Helper function to handle dropping between children
-  const handleChildDropAtPosition = (
-    componentTypeOrId,
-    position,
-    isMove = false,
-  ) => {
-    if (isMove) {
-      onMove(componentTypeOrId, position, component.id);
-    } else {
-      onAddChild(componentTypeOrId, position);
-    }
-  };
+  // Apply only drop ref (no drag ref anymore)
+  drop(ref);
 
   // Get the appropriate renderer for this component type
   const renderComponent =
@@ -684,8 +657,8 @@ export default function CanvasComponent({
     onSelect();
   };
 
-  // Render children with drop zones if this is a container
-  const renderChildrenWithDropZones = () => {
+  // Render children in sorted order
+  const renderSortedChildren = () => {
     if (
       !canAcceptChildren(component.type) ||
       !children ||
@@ -694,57 +667,166 @@ export default function CanvasComponent({
       return children;
     }
 
+    // Simply render children in position order
     const sortedChildren = [...children].sort(
       (a, b) => (a.position || 0) - (b.position || 0),
     );
-    const result = [];
 
-    // Add drop zone at the beginning
-    result.push(
-      <DropZone
-        key={`dropzone-start-${component.id}`}
-        onDrop={handleChildDropAtPosition}
-        position={0}
-        parentId={component.id}
-      />,
-    );
-
-    // Add children with drop zones after each
-    sortedChildren.forEach((child, index) => {
-      result.push(child);
-      result.push(
-        <DropZone
-          key={`dropzone-after-${child.id}`}
-          onDrop={handleChildDropAtPosition}
-          position={index + 1}
-          parentId={component.id}
-        />,
-      );
-    });
-
-    return result;
+    return sortedChildren;
   };
 
   return (
     <div
       ref={ref}
       onClick={handleClick}
-      className={`relative mb-4 ${isDragging ? "opacity-50" : "opacity-100"} ${
+      className={`relative mb-4 ${
         isSelected ? "ring-2 ring-[rgb(var(--primary))]" : ""
       } ${
         isOver && canDrop ? "bg-blue-50 dark:bg-blue-900/10" : ""
       } ${dropClass}`}
-      style={{ cursor: "move" }}>
+      style={{ cursor: "default" }}>
       {isSelected && (
-        <div className="absolute -top-3 -left-3 bg-[rgb(var(--primary))] text-white text-xs px-1.5 py-0.5 rounded-sm z-50">
-          {component.type}
-        </div>
+        <>
+          {/* Component type label */}
+          <div className="absolute -top-3 -left-3 bg-[rgb(var(--primary))] text-white text-xs px-1.5 py-0.5 rounded-sm z-50">
+            {component.type}
+          </div>
+
+          {/* Reordering buttons - positioned in top-right corner */}
+          <div className="absolute -top-3 -right-3 flex gap-1 z-50">
+            {/* Container children: up/down buttons */}
+            {component.parentId && parentType === "container" && (
+              <>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMoveUp && onMoveUp(component.id);
+                  }}
+                  className="bg-green-500 hover:bg-green-600 text-white text-xs p-1 rounded-sm transition-colors"
+                  title="Move Up">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMoveDown && onMoveDown(component.id);
+                  }}
+                  className="bg-green-500 hover:bg-green-600 text-white text-xs p-1 rounded-sm transition-colors"
+                  title="Move Down">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Columns children: left/right buttons */}
+            {component.parentId && parentType === "columns" && (
+              <>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMoveLeft && onMoveLeft(component.id);
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs p-1 rounded-sm transition-colors"
+                  title="Move Left">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMoveRight && onMoveRight(component.id);
+                  }}
+                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs p-1 rounded-sm transition-colors"
+                  title="Move Right">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Top-level components: up/down buttons */}
+            {!component.parentId && (
+              <>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMoveUp && onMoveUp(component.id);
+                  }}
+                  className="bg-green-500 hover:bg-green-600 text-white text-xs p-1 rounded-sm transition-colors"
+                  title="Move Up">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMoveDown && onMoveDown(component.id);
+                  }}
+                  className="bg-green-500 hover:bg-green-600 text-white text-xs p-1 rounded-sm transition-colors"
+                  title="Move Down">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
+        </>
       )}
 
       <div className={`${isSelected ? "pointer-events-none" : ""}`}>
         {renderComponent({
           properties: component.properties || {},
-          children: renderChildrenWithDropZones(),
+          children: renderSortedChildren(),
         })}
       </div>
     </div>

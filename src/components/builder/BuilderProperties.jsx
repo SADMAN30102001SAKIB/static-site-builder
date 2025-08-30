@@ -1373,7 +1373,7 @@ const PropertyEditors = {
     );
   },
 
-  navbar: ({ properties, onChange }) => {
+  navbar: ({ properties, onChange, website }) => {
     const {
       brand,
       transparent,
@@ -1579,15 +1579,54 @@ const PropertyEditors = {
                   />
 
                   {item.type === "link" && (
-                    <input
-                      type="text"
-                      value={item.url || ""}
-                      onChange={e =>
-                        handleItemUpdate(index, "url", e.target.value)
-                      }
-                      placeholder="URL (e.g., / for home, /about for page, #section for anchor)"
-                      className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700"
-                    />
+                    <div>
+                      <select
+                        value={item.url || ""}
+                        onChange={e => {
+                          console.log("Dropdown changed:", e.target.value);
+                          const newItems = [...items];
+                          if (e.target.value === "custom") {
+                            newItems[index] = {
+                              ...newItems[index],
+                              url: "custom",
+                              customUrl: newItems[index].customUrl || "",
+                            };
+                          } else {
+                            newItems[index] = {
+                              ...newItems[index],
+                              url: e.target.value,
+                              customUrl: "",
+                            };
+                          }
+                          console.log("Updated item:", newItems[index]);
+                          onChange({ ...properties, items: newItems });
+                        }}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700">
+                        <option value="">Select a page...</option>
+                        {website?.pages?.map(page => (
+                          <option key={page.id} value={page.path}>
+                            {page.title} ({page.path})
+                          </option>
+                        ))}
+                        <option value="custom">Custom URL...</option>
+                      </select>
+                      {item.url === "custom" && (
+                        <input
+                          type="text"
+                          value={item.customUrl || ""}
+                          onChange={e => {
+                            const newItems = [...items];
+                            newItems[index] = {
+                              ...newItems[index],
+                              customUrl: e.target.value,
+                            };
+                            onChange({ ...properties, items: newItems });
+                          }}
+                          placeholder="Enter custom URL (e.g., https://example.com or #section)"
+                          className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 mt-2"
+                        />
+                      )}
+                    </div>
                   )}
 
                   {item.type === "button" && (
@@ -1636,6 +1675,7 @@ export default function BuilderProperties({
   component,
   onUpdateComponent,
   onDeleteComponent,
+  website,
 }) {
   const [localProperties, setLocalProperties] = useState({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -1697,7 +1737,11 @@ export default function BuilderProperties({
     }
 
     return (
-      <PropertyEditor properties={localProperties} onChange={handleChange} />
+      <PropertyEditor
+        properties={localProperties}
+        onChange={handleChange}
+        website={website}
+      />
     );
   };
 

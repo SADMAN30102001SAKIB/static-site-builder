@@ -18,7 +18,20 @@ export async function GET(request, { params }) {
     const page = await prisma.page.findUnique({
       where: { id },
       include: {
-        website: true,
+        website: {
+          include: {
+            pages: {
+              select: {
+                id: true,
+                title: true,
+                path: true,
+              },
+              orderBy: {
+                title: "asc",
+              },
+            },
+          },
+        },
         components: {
           orderBy: {
             position: "asc",

@@ -117,7 +117,8 @@ const componentRenderers = {
           width: width || "100%",
           backgroundColor: backgroundColor || "transparent",
           padding: padding || "20px",
-        }}>
+        }}
+        className="space-y-4">
         {children}
       </div>
     );
@@ -628,29 +629,36 @@ const componentRenderers = {
     const navItems = items.length > 0 ? items : defaultItems;
 
     // Transform URLs based on website context
-    const transformUrl = url => {
-      if (!url || url.startsWith("http") || url.startsWith("#")) {
-        return url; // External links or anchors remain unchanged
+    const transformUrl = (url, customUrl) => {
+      // If URL is "custom", use the customUrl value instead
+      const actualUrl = url === "custom" ? customUrl || "#" : url;
+
+      if (
+        !actualUrl ||
+        actualUrl.startsWith("http") ||
+        actualUrl.startsWith("#")
+      ) {
+        return actualUrl; // External links or anchors remain unchanged
       }
 
       // If accessing via custom domain, keep relative URLs as-is
       if (isCustomDomain) {
-        return url;
+        return actualUrl;
       }
 
       if (websiteSlug) {
         // In main app context, transform relative URLs to include site path
-        if (url === "/") {
+        if (actualUrl === "/") {
           return `/site/${websiteSlug}`;
         }
-        if (url.startsWith("/")) {
-          return `/site/${websiteSlug}${url}`;
+        if (actualUrl.startsWith("/")) {
+          return `/site/${websiteSlug}${actualUrl}`;
         }
-        return `/site/${websiteSlug}/${url}`;
+        return `/site/${websiteSlug}/${actualUrl}`;
       }
 
       // In builder context, keep URLs as-is for preview
-      return url;
+      return actualUrl;
     };
 
     const navStyle = {
@@ -698,7 +706,7 @@ const componentRenderers = {
               return (
                 <a
                   key={index}
-                  href={transformUrl(item.url) || "#"}
+                  href={transformUrl(item.url, item.customUrl) || "#"}
                   className="transition-colors"
                   style={{
                     color: textColor || (transparent ? "#000000" : "#ffffff"),
