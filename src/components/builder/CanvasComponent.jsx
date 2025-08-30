@@ -736,7 +736,7 @@ export default function CanvasComponent({
       } ${dropClass}`}
       style={{ cursor: "move" }}>
       {isSelected && (
-        <div className="absolute -top-3 -left-3 bg-[rgb(var(--primary))] text-white text-xs px-1.5 py-0.5 rounded-sm z-10">
+        <div className="absolute -top-3 -left-3 bg-[rgb(var(--primary))] text-white text-xs px-1.5 py-0.5 rounded-sm z-50">
           {component.type}
         </div>
       )}
