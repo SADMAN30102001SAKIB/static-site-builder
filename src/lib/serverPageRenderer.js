@@ -212,30 +212,32 @@ export function generateFullPageHtml(
         }">
         
         <!-- Include Tailwind CSS for proper styling -->
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="/api/styles" />
         <script>
-          tailwind.config = {
-            darkMode: 'class',
-            theme: {
-              extend: {
-                colors: {
-                  primary: {
-                    DEFAULT: 'rgb(37, 99, 235)',
-                    light: 'rgb(93, 139, 244)',
-                    dark: 'rgb(30, 64, 175)',
-                  },
-                  secondary: {
-                    DEFAULT: 'rgb(249, 115, 22)',
-                    light: 'rgb(251, 146, 60)',
-                    dark: 'rgb(194, 65, 12)',
-                  },
-                  success: 'rgb(34, 197, 94)',
-                  error: 'rgb(220, 38, 38)',
-                  warning: 'rgb(234, 179, 8)',
+          tailwind = {
+            config: {
+              darkMode: 'class',
+              theme: {
+                extend: {
+                  colors: {
+                    primary: {
+                      DEFAULT: 'rgb(37, 99, 235)',
+                      light: 'rgb(93, 139, 244)',
+                      dark: 'rgb(30, 64, 175)',
+                    },
+                    secondary: {
+                      DEFAULT: 'rgb(249, 115, 22)',
+                      light: 'rgb(251, 146, 60)',
+                      dark: 'rgb(194, 65, 12)',
+                    },
+                    success: 'rgb(34, 197, 94)',
+                    error: 'rgb(220, 38, 38)',
+                    warning: 'rgb(234, 179, 8)',
+                  }
                 }
               }
             }
-          }
+          };
         </script>
         <style>
           :root {
