@@ -47,7 +47,22 @@ export async function GET(request, { params }) {
       orderBy: { isHomePage: "desc" },
     });
 
-    return NextResponse.json({ ...website, pages });
+    // Find the first published page for "View Site" optimization
+    const firstPublishedPage =
+      pages.find(p => p.published && p.isHomePage) ||
+      pages.find(p => p.published);
+
+    return NextResponse.json({
+      ...website,
+      pages,
+      firstPublishedPage: firstPublishedPage
+        ? {
+            id: firstPublishedPage.id,
+            path: firstPublishedPage.path,
+            isHomePage: firstPublishedPage.isHomePage,
+          }
+        : null,
+    });
   } catch (error) {
     console.error("Error fetching website:", error);
     return NextResponse.json(

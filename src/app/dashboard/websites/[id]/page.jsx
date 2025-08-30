@@ -8,7 +8,7 @@ import Button from "@/components/ui/Button";
 import StatCard from "@/components/dashboard/StatCard";
 import Input from "@/components/ui/Input";
 import { useToast } from "@/hooks/use-toast";
-import { openLiveSite } from "@/lib/siteUrls";
+import { openLiveSiteOptimized } from "@/lib/siteUrls";
 
 export default function WebsiteDetails({ params }) {
   const router = useRouter();
@@ -388,7 +388,9 @@ export default function WebsiteDetails({ params }) {
               </Button>
               <Button
                 variant="ghost"
-                onClick={async () => await openLiveSite(website)}
+                onClick={() =>
+                  openLiveSiteOptimized(website, website.firstPublishedPage)
+                }
                 disabled={!website.published}>
                 <svg
                   className="w-5 h-5 mr-1"
