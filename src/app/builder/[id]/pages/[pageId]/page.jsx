@@ -337,7 +337,7 @@ export default function PageBuilderEditor({ params }) {
         };
       case "image":
         return {
-          src: "https://via.placeholder.com/300x200",
+          src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23374151' font-family='Arial, sans-serif' font-size='16'%3EImage%3C/text%3E%3C/svg%3E",
           alt: "Image description",
           width: "100%",
         };

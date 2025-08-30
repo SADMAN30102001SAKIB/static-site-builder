@@ -36,7 +36,10 @@ const componentRenderers = {
 
     return (
       <img
-        src={src || "https://via.placeholder.com/300x200"}
+        src={
+          src ||
+          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23374151' font-family='Arial, sans-serif' font-size='16'%3EImage%3C/text%3E%3C/svg%3E"
+        }
         alt={alt || "Image"}
         style={{
           width: width || "100%",
@@ -595,7 +598,9 @@ const componentRenderers = {
               key={i}
               className="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg">
               <img
-                src={`https://via.placeholder.com/400x300?text=Image+${i + 1}`}
+                src={`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23374141' font-family='Arial, sans-serif' font-size='16'%3EImage ${
+                  i + 1
+                }%3C/text%3E%3C/svg%3E`}
                 alt={`Gallery image ${i + 1}`}
                 className="w-full h-full object-cover"
               />
@@ -703,21 +708,22 @@ const componentRenderers = {
                 </button>
               );
             } else {
+              const linkStyle = {
+                color: textColor || (transparent ? "#000000" : "#ffffff"),
+                textDecoration: "none",
+              };
+
+              const hoverColorValue = hoverColor || "#3b82f6";
+
               return (
                 <a
                   key={index}
                   href={transformUrl(item.url, item.customUrl) || "#"}
-                  className="transition-colors"
-                  style={{
-                    color: textColor || (transparent ? "#000000" : "#ffffff"),
-                  }}
-                  onMouseEnter={e => {
-                    e.target.style.color = hoverColor || "#3b82f6";
-                  }}
-                  onMouseLeave={e => {
-                    e.target.style.color =
-                      textColor || (transparent ? "#000000" : "#ffffff");
-                  }}>
+                  rel="nofollow"
+                  className="transition-colors hover:opacity-80"
+                  style={linkStyle}
+                  onMouseOver={`this.style.color='${hoverColorValue}'`}
+                  onMouseOut={`this.style.color='${linkStyle.color}'`}>
                   {item.label || "Link"}
                 </a>
               );
@@ -992,7 +998,10 @@ const componentRenderers = {
 
     const logoElement = (
       <img
-        src={src || "https://via.placeholder.com/200x80?text=Logo"}
+        src={
+          src ||
+          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='80' viewBox='0 0 200 80'%3E%3Crect width='200' height='80' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23374151' font-family='Arial, sans-serif' font-size='14'%3ELogo%3C/text%3E%3C/svg%3E"
+        }
         alt={alt || "Logo"}
         style={{
           width: width || "auto",

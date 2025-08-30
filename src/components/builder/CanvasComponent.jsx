@@ -290,7 +290,9 @@ const builderComponentRenderers = {
               key={i}
               className="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg">
               <img
-                src={`https://via.placeholder.com/400x300?text=Image+${i + 1}`}
+                src={`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23374141' font-family='Arial, sans-serif' font-size='16'%3EImage ${
+                  i + 1
+                }%3C/text%3E%3C/svg%3E`}
                 alt={`Gallery image ${i + 1}`}
                 className="w-full h-full object-cover"
               />
