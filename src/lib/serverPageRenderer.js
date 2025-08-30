@@ -212,19 +212,20 @@ export function generateFullPageHtml(
         }">
         
         <!-- Include Tailwind CSS for proper styling -->
-        <script src="https://cdn.tailwindcss.com"></script>
         <script>
-          // Suppress the production warning for live sites
+          // Suppress the production warning for live sites BEFORE Tailwind loads
           if (typeof console !== 'undefined' && console.warn) {
             const originalWarn = console.warn;
             console.warn = function(...args) {
-              if (args[0] && args[0].includes && args[0].includes('should not be used in production')) {
+              if (args[0] && typeof args[0] === 'string' && args[0].includes('should not be used in production')) {
                 return; // Suppress Tailwind CDN warning
               }
               return originalWarn.apply(console, args);
             };
           }
-          
+        </script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
           tailwind.config = {
             darkMode: 'class',
             theme: {
