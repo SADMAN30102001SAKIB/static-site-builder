@@ -158,7 +158,6 @@ const componentRenderers = {
           type="text"
           placeholder={placeholder || "Enter text..."}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] bg-white text-gray-900"
-          readOnly
         />
       </div>
     );
@@ -178,7 +177,6 @@ const componentRenderers = {
           placeholder={placeholder || "Enter text..."}
           rows={rows || 4}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[rgb(var(--primary))] focus:border-[rgb(var(--primary))] bg-white text-gray-900"
-          readOnly
         />
       </div>
     );
@@ -192,7 +190,6 @@ const componentRenderers = {
         <input
           type="checkbox"
           className="h-4 w-4 text-[rgb(var(--primary))] border-gray-300 rounded focus:ring-[rgb(var(--primary))]"
-          readOnly
         />
         <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
           {label || "Checkbox label"}
@@ -333,7 +330,6 @@ const componentRenderers = {
               <input
                 type="text"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
-                readOnly
               />
             </div>
           )}
@@ -344,7 +340,6 @@ const componentRenderers = {
             <input
               type="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
-              readOnly
             />
           </div>
           {showSubjectField !== false && (
@@ -355,7 +350,6 @@ const componentRenderers = {
               <input
                 type="text"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
-                readOnly
               />
             </div>
           )}
@@ -366,7 +360,6 @@ const componentRenderers = {
             <textarea
               rows="4"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900"
-              readOnly
             />
           </div>
           <button
