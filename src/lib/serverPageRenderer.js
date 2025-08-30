@@ -130,6 +130,16 @@ export function generateFullPageHtml(
   const componentsHtml = renderPageToHtml(page, website, isCustomDomain);
   const allPages = website.pages;
 
+  // Helper function to generate site URL based on context
+  const getSiteUrl = (pagePath = "") => {
+    if (isCustomDomain) {
+      // For custom domain, use relative URLs
+      return pagePath;
+    }
+    // For normal access, use /site/slug format
+    return `/site/${website.slug}${pagePath}`;
+  };
+
   // Generate navigation for preview mode
   const navigationHtml = isPreview
     ? `
@@ -155,7 +165,7 @@ export function generateFullPageHtml(
             .join("")}
         </div>
         <div style="display: flex; gap: 10px;">
-          <a href="/site/${website.slug}${page.isHomePage ? "" : page.path}" 
+          <a href="${getSiteUrl(page.isHomePage ? "" : page.path)}" 
              style="color: #10b981; text-decoration: none; padding: 5px 10px; border: 1px solid #10b981; border-radius: 4px; background-color: transparent;">
             🌐 View Site
           </a>

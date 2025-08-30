@@ -128,9 +128,39 @@ export async function GET(request, { params }) {
     }
 
     // Find the home page
-    const homePage = website.pages.find(p => p.isHomePage) || website.pages[0];
+    const homePage = website.pages.find(p => p.isHomePage);
 
-    if (!homePage) {
+    // If home page is not published, show "not published" message
+    if (!homePage || !homePage.published) {
+      return new Response(
+        `
+        <html>
+          <head>
+            <title>${website.name}</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 40px; text-align: center; background-color: #f5f5f5; }
+              .message { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+              .warning { color: #f59e0b; }
+            </style>
+          </head>
+          <body>
+            <div class="message">
+              <h1 class="warning">Home Page Not Published</h1>
+              <p>The home page for this website is not published yet.</p>
+            </div>
+          </body>
+        </html>
+      `,
+        {
+          headers: { "Content-Type": "text/html" },
+        },
+      );
+    }
+
+    // If no published pages at all, show different message
+    if (website.pages.length === 0) {
       return new Response(
         `
         <html>

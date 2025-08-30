@@ -741,9 +741,46 @@ const componentRenderers = {
     );
   },
 
-  footer: ({ properties }) => {
-    const { columns, showSocial, copyright } = properties;
+  footer: ({ properties, websiteSlug, isCustomDomain }) => {
+    const { columns, showSocial, copyright, links = [] } = properties;
     const colCount = columns || 4;
+
+    // Transform URLs based on website context
+    const transformUrl = url => {
+      if (!url || url.startsWith("http") || url.startsWith("#")) {
+        return url; // External links or anchors remain unchanged
+      }
+
+      // If accessing via custom domain, keep relative URLs as-is
+      if (isCustomDomain) {
+        return url;
+      }
+
+      if (websiteSlug) {
+        // In main app context, transform relative URLs to include site path
+        if (url === "/") {
+          return `/site/${websiteSlug}`;
+        }
+        if (url.startsWith("/")) {
+          return `/site/${websiteSlug}${url}`;
+        }
+        return `/site/${websiteSlug}/${url}`;
+      }
+
+      // In builder context, keep URLs as-is for preview
+      return url;
+    };
+
+    // Default links if none provided
+    const defaultLinks = [
+      { label: "Home", url: "/" },
+      { label: "About", url: "/about" },
+      { label: "Services", url: "/services" },
+      { label: "Blog", url: "/blog" },
+      { label: "Contact", url: "/contact" },
+    ];
+
+    const footerLinks = links.length > 0 ? links : defaultLinks;
 
     return (
       <footer className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-sm">
@@ -758,17 +795,15 @@ const componentRenderers = {
             <div>
               <h3 className="text-lg font-bold mb-4">Quick Links</h3>
               <ul className="space-y-2">
-                {["Home", "About", "Services", "Blog", "Contact"]
-                  .slice(0, 5)
-                  .map((item, i) => (
-                    <li key={i}>
-                      <a
-                        href="#"
-                        className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
-                        {item}
-                      </a>
-                    </li>
-                  ))}
+                {footerLinks.slice(0, 5).map((link, i) => (
+                  <li key={i}>
+                    <a
+                      href={transformUrl(link.url || "#")}
+                      className="text-gray-600 dark:text-gray-400 hover:text-[rgb(var(--primary))]">
+                      {link.label || `Link ${i + 1}`}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
             <div>
