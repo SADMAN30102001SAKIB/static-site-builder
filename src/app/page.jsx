@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
