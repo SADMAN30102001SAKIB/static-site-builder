@@ -44,7 +44,10 @@ export async function GET(request, { params }) {
     // Get associated pages
     const pages = await prisma.page.findMany({
       where: { websiteId: id },
-      orderBy: { isHomePage: "desc" },
+      orderBy: [
+        { isHomePage: "desc" }, // Home page first
+        { createdAt: "asc" }, // Then by creation date (oldest first)
+      ],
     });
 
     // Find the first published page for "View Site" optimization
