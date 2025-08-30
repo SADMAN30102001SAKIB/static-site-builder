@@ -46,7 +46,7 @@ const componentRenderers = {
     );
   },
 
-  button: ({ properties }) => {
+  button: ({ properties, websiteSlug, isCustomDomain }) => {
     const { text, url, backgroundColor, textColor, size } = properties;
 
     const sizeClasses = {
@@ -55,13 +55,53 @@ const componentRenderers = {
       large: "px-6 py-3 text-lg",
     };
 
+    // Transform URLs based on website context
+    const transformUrl = url => {
+      if (!url || url.startsWith("http") || url.startsWith("#")) {
+        return url; // External links or anchors remain unchanged
+      }
+
+      // If accessing via custom domain, keep relative URLs as-is
+      if (isCustomDomain) {
+        return url;
+      }
+
+      if (websiteSlug) {
+        // In main app context, transform relative URLs to include site path
+        if (url === "/") {
+          return `/site/${websiteSlug}`;
+        }
+        if (url.startsWith("/")) {
+          return `/site/${websiteSlug}${url}`;
+        }
+        return `/site/${websiteSlug}/${url}`;
+      }
+
+      // In builder context, keep URLs as-is for preview
+      return url;
+    };
+
+    const buttonStyle = {
+      backgroundColor: backgroundColor || "#3b82f6",
+      color: textColor || "white",
+    };
+
+    const className = `rounded ${sizeClasses[size || "medium"]} font-medium`;
+
+    // If URL is provided, render as link
+    if (url) {
+      return (
+        <a href={transformUrl(url)} className={className} style={buttonStyle}>
+          {text || "Button"}
+        </a>
+      );
+    }
+
+    // Otherwise render as button
     return (
       <button
-        style={{
-          backgroundColor: backgroundColor || "#3b82f6",
-          color: textColor || "white",
-        }}
-        className={`rounded ${sizeClasses[size || "medium"]} font-medium`}
+        style={buttonStyle}
+        className={className}
         onClick={e => e.preventDefault()}>
         {text || "Button"}
       </button>
@@ -817,8 +857,41 @@ const componentRenderers = {
     );
   },
 
-  callToAction: ({ properties }) => {
-    const { title, subtitle, buttonText, align, backgroundColor } = properties;
+  callToAction: ({ properties, websiteSlug, isCustomDomain }) => {
+    const { title, subtitle, buttonText, buttonUrl, align, backgroundColor } =
+      properties;
+
+    // Transform URLs based on website context
+    const transformUrl = url => {
+      if (!url || url.startsWith("http") || url.startsWith("#")) {
+        return url; // External links or anchors remain unchanged
+      }
+
+      // If accessing via custom domain, keep relative URLs as-is
+      if (isCustomDomain) {
+        return url;
+      }
+
+      if (websiteSlug) {
+        // In main app context, transform relative URLs to include site path
+        if (url === "/") {
+          return `/site/${websiteSlug}`;
+        }
+        if (url.startsWith("/")) {
+          return `/site/${websiteSlug}${url}`;
+        }
+        return `/site/${websiteSlug}/${url}`;
+      }
+
+      // In builder context, keep URLs as-is for preview
+      return url;
+    };
+
+    const buttonElement = (
+      <button className="bg-white text-[rgb(var(--primary))] px-6 py-2 rounded-md font-medium border border-gray-200 hover:bg-gray-50">
+        {buttonText || "Get Started"}
+      </button>
+    );
 
     return (
       <div
@@ -834,15 +907,45 @@ const componentRenderers = {
         <p className="mb-6">
           {subtitle || "Join thousands of satisfied customers today!"}
         </p>
-        <button className="bg-white text-[rgb(var(--primary))] px-6 py-2 rounded-md font-medium border border-gray-200 hover:bg-gray-50">
-          {buttonText || "Get Started"}
-        </button>
+        {buttonUrl ? (
+          <a href={transformUrl(buttonUrl)} className="inline-block">
+            {buttonElement}
+          </a>
+        ) : (
+          buttonElement
+        )}
       </div>
     );
   },
 
-  logo: ({ properties }) => {
+  logo: ({ properties, websiteSlug, isCustomDomain }) => {
     const { src, alt, width, height, linkUrl } = properties;
+
+    // Transform URLs based on website context
+    const transformUrl = url => {
+      if (!url || url.startsWith("http") || url.startsWith("#")) {
+        return url; // External links or anchors remain unchanged
+      }
+
+      // If accessing via custom domain, keep relative URLs as-is
+      if (isCustomDomain) {
+        return url;
+      }
+
+      if (websiteSlug) {
+        // In main app context, transform relative URLs to include site path
+        if (url === "/") {
+          return `/site/${websiteSlug}`;
+        }
+        if (url.startsWith("/")) {
+          return `/site/${websiteSlug}${url}`;
+        }
+        return `/site/${websiteSlug}/${url}`;
+      }
+
+      // In builder context, keep URLs as-is for preview
+      return url;
+    };
 
     const logoElement = (
       <img
@@ -860,7 +963,7 @@ const componentRenderers = {
     // If linkUrl is provided, wrap in anchor tag
     if (linkUrl) {
       return (
-        <a href={linkUrl} className="inline-block">
+        <a href={transformUrl(linkUrl)} className="inline-block">
           {logoElement}
         </a>
       );

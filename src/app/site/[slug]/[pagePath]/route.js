@@ -158,41 +158,44 @@ export async function GET(request, { params }) {
       })),
     );
 
+    // Generate the appropriate home URL
+    const homeUrl = isCustomDomain
+      ? "/"
+      : `/site/${website.slug || website.id}`;
+
     if (!page) {
       return new Response(
         `
-        <html>
-          <head>
-            <title>Page Not Found - ${website.name}</title>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              body { font-family: Arial, sans-serif; margin: 0; padding: 40px; text-align: center; background-color: #f5f5f5; }
-              .message { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-              .warning { color: #f59e0b; }
-              .nav { margin-top: 30px; }
-              .nav a { color: #007bff; text-decoration: none; margin: 0 10px; }
-              .nav a:hover { text-decoration: underline; }
-            </style>
-          </head>
-          <body>
-            <div class="message">
-              <h1 class="warning">Page Not Found</h1>
-              <p>The page "${pagePath}" was not found or is not published.</p>
-              <div class="nav">
-                <a href="/site/${website.slug || website.id}">← Back to Home</a>
-              </div>
+      <html>
+        <head>
+          <title>Page Not Found - ${website.name}</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 40px; text-align: center; background-color: #f5f5f5; }
+            .message { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .warning { color: #f59e0b; }
+            .nav { margin-top: 30px; }
+            .nav a { color: #007bff; text-decoration: none; margin: 0 10px; }
+            .nav a:hover { text-decoration: underline; }
+          </style>
+        </head>
+        <body>
+          <div class="message">
+            <h1 class="warning">Page Not Found</h1>
+            <p>The page "${pagePath}" was not found or is not published.</p>
+            <div class="nav">
+              <a href="${homeUrl}">← Back to Home</a>
             </div>
-          </body>
-        </html>
-      `,
+          </div>
+        </body>
+      </html>
+    `,
         {
           headers: { "Content-Type": "text/html" },
         },
       );
-    }
-
-    // Generate HTML for the page with navigation
+    } // Generate HTML for the page with navigation
     const pageHtml = generateFullPageHtml(page, website, false, isCustomDomain);
 
     return new Response(pageHtml, {
