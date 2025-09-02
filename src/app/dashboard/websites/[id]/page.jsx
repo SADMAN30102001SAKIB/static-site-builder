@@ -289,12 +289,12 @@ export default function WebsiteDetails({ params }) {
   return (
     <Container maxWidth="max-w-6xl">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 min-w-0 flex-1 pr-4">
           <Button
             href="/dashboard/websites"
             variant="ghost"
             size="sm"
-            className="mr-2">
+            className="mr-2 flex-shrink-0">
             <svg
               className="w-5 h-5 mr-1"
               fill="none"
@@ -344,7 +344,7 @@ export default function WebsiteDetails({ params }) {
             )}
           </div>
           {website.published && (
-            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
               Published
             </span>
           )}
