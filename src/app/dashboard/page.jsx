@@ -38,7 +38,16 @@ export default function Dashboard() {
         // Billing info is optional, don't fail if it errors
         if (billingResponse.ok) {
           const billingData = await billingResponse.json();
-          setBillingInfo(billingData);
+          // Ensure billing data has the expected structure
+          if (billingData && typeof billingData === "object") {
+            setBillingInfo(billingData);
+          } else {
+            console.warn("Billing API returned unexpected data:", billingData);
+            setBillingInfo(null);
+          }
+        } else {
+          console.warn("Billing API request failed:", billingResponse.status);
+          setBillingInfo(null);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -180,7 +189,7 @@ export default function Dashboard() {
           title="Published"
           value={`${publishedWebsites}${
             billingInfo?.usage?.publishLimit !== Infinity
-              ? ` / ${billingInfo.usage.publishLimit}`
+              ? ` / ${billingInfo?.usage?.publishLimit ?? 0}`
               : ""
           }`}
           icon={
@@ -206,7 +215,7 @@ export default function Dashboard() {
             ) : billingInfo?.usage?.remainingPublishes !== undefined &&
               billingInfo?.usage?.remainingPublishes !== Infinity ? (
               <span className="text-gray-500 text-xs">
-                {billingInfo.usage.remainingPublishes} remaining
+                {billingInfo?.usage?.remainingPublishes} remaining
               </span>
             ) : null
           }

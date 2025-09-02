@@ -12,11 +12,6 @@ export const prisma =
         url: process.env.DATABASE_URL,
       },
     },
-    // Configure connection and query timeouts
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
