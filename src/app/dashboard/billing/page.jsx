@@ -179,13 +179,13 @@ export default function BillingPage() {
                 </span>
                 <span className="font-medium">
                   {websites.filter(site => site.published).length} /{" "}
-                  {billingInfo.usage.publishLimit === Infinity
+                  {billingInfo.usage.publishLimit === -1
                     ? "∞"
                     : billingInfo.usage.publishLimit}
                 </span>
               </div>
 
-              {billingInfo.usage.publishLimit !== Infinity && (
+              {billingInfo.usage.publishLimit !== -1 && (
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full"

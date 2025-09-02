@@ -27,7 +27,7 @@ export const CLIENT_STRIPE_CONFIG = {
     PRO: {
       name: "Pro",
       price: 999,
-      publishLimit: Infinity,
+      publishLimit: -1,
       features: [
         "Unlimited website creation",
         "Unlimited published websites",

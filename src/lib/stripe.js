@@ -27,7 +27,7 @@ export const STRIPE_CONFIG = {
       name: "Pro",
       price: 999,
       priceId: process.env.STRIPE_PRO_PRICE_ID,
-      publishLimit: Infinity,
+      publishLimit: -1, // Use -1 to represent unlimited
       features: [
         "Unlimited website creation",
         "Unlimited published websites",
@@ -46,17 +46,19 @@ export const STRIPE_CONFIG = {
 export function getPlanLimits(user) {
   const plan = user.plan || "FREE";
   const planConfig = STRIPE_CONFIG.PLANS[plan];
+  const isUnlimited = planConfig.publishLimit === -1;
 
   return {
-    publishLimit: planConfig.publishLimit,
+    publishLimit: isUnlimited ? -1 : planConfig.publishLimit,
     publishedCount: user.publishedWebsiteCount || 0,
-    canPublish: (user.publishedWebsiteCount || 0) < planConfig.publishLimit,
-    remainingPublishes:
-      planConfig.publishLimit === Infinity
-        ? Infinity
-        : Math.max(
-            0,
-            planConfig.publishLimit - (user.publishedWebsiteCount || 0),
-          ),
+    canPublish:
+      isUnlimited ||
+      (user.publishedWebsiteCount || 0) < planConfig.publishLimit,
+    remainingPublishes: isUnlimited
+      ? -1
+      : Math.max(
+          0,
+          planConfig.publishLimit - (user.publishedWebsiteCount || 0),
+        ),
   };
 }

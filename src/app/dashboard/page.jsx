@@ -138,9 +138,9 @@ export default function Dashboard() {
   // Calculate correct remaining publishes based on actual published websites
   const actualRemainingPublishes =
     billingInfo?.usage?.publishLimit !== undefined &&
-    billingInfo?.usage?.publishLimit !== Infinity
+    billingInfo?.usage?.publishLimit !== -1
       ? Math.max(0, billingInfo.usage.publishLimit - publishedWebsites)
-      : Infinity;
+      : -1;
   const templateCount = websites.filter(w => w.isTemplate).length;
 
   return (
@@ -195,7 +195,7 @@ export default function Dashboard() {
         <StatCard
           title="Published"
           value={`${publishedWebsites}${
-            billingInfo?.usage?.publishLimit !== Infinity
+            billingInfo?.usage?.publishLimit !== -1
               ? ` / ${billingInfo?.usage?.publishLimit ?? 0}`
               : ""
           }`}
@@ -214,13 +214,13 @@ export default function Dashboard() {
             </svg>
           }
           subtitle={
-            billingInfo?.usage?.publishLimit !== Infinity &&
+            billingInfo?.usage?.publishLimit !== -1 &&
             actualRemainingPublishes === 0 ? (
               <span className="text-orange-600 dark:text-orange-400 text-xs font-medium">
                 Limit reached
               </span>
             ) : billingInfo?.usage?.publishLimit !== undefined &&
-              billingInfo?.usage?.publishLimit !== Infinity ? (
+              billingInfo?.usage?.publishLimit !== -1 ? (
               <span className="text-gray-500 text-xs">
                 {actualRemainingPublishes} remaining
               </span>
