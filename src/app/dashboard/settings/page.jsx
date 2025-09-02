@@ -1,12 +1,35 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import Container from "@/components/ui/Container";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
+  const [userInfo, setUserInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!session?.user?.id) return;
+
+      try {
+        const response = await fetch("/api/user/profile");
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo(data.user);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, [session]);
 
   const settingsCategories = [
     {
@@ -145,36 +168,51 @@ export default function SettingsPage() {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Account Information
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600 dark:text-gray-400">Email:</span>
-                <span className="ml-2 text-gray-900 dark:text-white">
-                  {session.user.email}
-                </span>
+            {isLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  Loading account information...
+                </p>
               </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400">Name:</span>
-                <span className="ml-2 text-gray-900 dark:text-white">
-                  {session.user.name || "Not set"}
-                </span>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Email:
+                  </span>
+                  <span className="ml-2 text-gray-900 dark:text-white">
+                    {session.user.email}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Name:
+                  </span>
+                  <span className="ml-2 text-gray-900 dark:text-white">
+                    {session.user.name || "Not set"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Account Type:
+                  </span>
+                  <span className="ml-2 text-gray-900 dark:text-white">
+                    {userInfo?.plan || "Free"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Member Since:
+                  </span>
+                  <span className="ml-2 text-gray-900 dark:text-white">
+                    {userInfo?.createdAt
+                      ? new Date(userInfo.createdAt).toLocaleDateString()
+                      : "Unknown"}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400">
-                  Account Type:
-                </span>
-                <span className="ml-2 text-gray-900 dark:text-white">Free</span>
-              </div>
-              <div>
-                <span className="text-gray-600 dark:text-gray-400">
-                  Member Since:
-                </span>
-                <span className="ml-2 text-gray-900 dark:text-white">
-                  {new Date(
-                    session.user.createdAt || Date.now(),
-                  ).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         </Card>
       )}
