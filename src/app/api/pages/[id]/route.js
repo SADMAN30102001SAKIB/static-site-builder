@@ -129,6 +129,26 @@ export async function PATCH(request, { params }) {
       data: updates,
     });
 
+    // Auto-unshare template if home page is being unpublished
+    if (
+      updates.published === false &&
+      page.isHomePage &&
+      page.website.isTemplate &&
+      page.website.published
+    ) {
+      await prisma.website.update({
+        where: { id: page.websiteId },
+        data: {
+          isTemplate: false,
+          templateDescription: null,
+          templateTags: null,
+        },
+      });
+      console.log(
+        `Auto-unsharing template for website ${page.websiteId} due to home page unpublish`,
+      );
+    }
+
     return NextResponse.json({
       message: "Page updated successfully",
       page: updatedPage,
@@ -191,6 +211,21 @@ export async function DELETE(request, { params }) {
     await prisma.page.delete({
       where: { id },
     });
+
+    // Auto-unshare template if home page is being deleted
+    if (page.isHomePage && page.website.isTemplate && page.website.published) {
+      await prisma.website.update({
+        where: { id: page.websiteId },
+        data: {
+          isTemplate: false,
+          templateDescription: null,
+          templateTags: null,
+        },
+      });
+      console.log(
+        `Auto-unsharing template for website ${page.websiteId} due to home page deletion`,
+      );
+    }
 
     return NextResponse.json({ message: "Page deleted successfully" });
   } catch (error) {

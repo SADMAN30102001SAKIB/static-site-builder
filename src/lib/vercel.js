@@ -1,8 +1,3 @@
-/**
- * Vercel API Integration for Custom Domains
- * Handles domain registration, verification, and removal with retry logic
- */
-
 const VERCEL_API_BASE = "https://api.vercel.com";
 const VERCEL_ACCESS_TOKEN = process.env.VERCEL_ACCESS_TOKEN;
 const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
@@ -14,14 +9,6 @@ if (!VERCEL_ACCESS_TOKEN || !VERCEL_PROJECT_ID) {
   );
 }
 
-/**
- * DRY helper for Vercel API calls with consistent headers and error handling
- * @param {string} path - API endpoint path (e.g., "/v9/projects/...")
- * @param {string} method - HTTP method
- * @param {object|null} body - Request body
- * @param {number} maxRetries - Maximum retry attempts
- * @returns {Promise<{response: Response, data: any}>}
- */
 async function vercelApiFetch(
   path,
   method = "GET",
@@ -78,14 +65,6 @@ async function vercelApiFetch(
   throw lastError || new Error("Max retries exceeded");
 }
 
-/**
- * Standard error response format for Vercel API errors
- * @param {string} message - Human-readable error message
- * @param {string} code - Error code for programmatic handling
- * @param {number} status - HTTP status code
- * @param {object} details - Additional error details
- * @returns {object} Standardized error object
- */
 function createVercelError(
   message,
   code = "VERCEL_API_ERROR",
@@ -104,11 +83,6 @@ function createVercelError(
   };
 }
 
-/**
- * Enhanced validation for domain names
- * @param {string} domain - Domain to validate
- * @returns {{valid: boolean, error?: string}}
- */
 export function validateDomain(domain) {
   if (!domain || typeof domain !== "string") {
     return { valid: false, error: "Domain is required and must be a string" };
@@ -144,12 +118,6 @@ export function validateDomain(domain) {
   return { valid: true };
 }
 
-/**
- * Add a custom domain to Vercel project
- * @param {string} domain - The domain to add (e.g., "example.com")
- * @param {number} maxRetries - Maximum retry attempts for API failures
- * @returns {Promise<{success: boolean, error?: string, data?: any}>}
- */
 export async function addDomainToVercel(domain, maxRetries = 3) {
   if (!VERCEL_ACCESS_TOKEN || !VERCEL_PROJECT_ID) {
     return createVercelError(
@@ -226,11 +194,6 @@ export async function addDomainToVercel(domain, maxRetries = 3) {
   }
 }
 
-/**
- * Remove a custom domain from Vercel project
- * @param {string} domain - The domain to remove
- * @returns {Promise<{success: boolean, error?: string}>}
- */
 export async function removeDomainFromVercel(domain) {
   if (!VERCEL_ACCESS_TOKEN || !VERCEL_PROJECT_ID) {
     return createVercelError(
@@ -287,11 +250,6 @@ export async function removeDomainFromVercel(domain) {
   }
 }
 
-/**
- * Verify a custom domain with Vercel
- * @param {string} domain - The domain to verify
- * @returns {Promise<{success: boolean, verified: boolean, error?: string, data?: any}>}
- */
 export async function verifyDomainWithVercel(domain) {
   if (!VERCEL_ACCESS_TOKEN || !VERCEL_PROJECT_ID) {
     return createVercelError(
@@ -352,11 +310,6 @@ export async function verifyDomainWithVercel(domain) {
   }
 }
 
-/**
- * Get domain information from Vercel
- * @param {string} domain - The domain to get info for
- * @returns {Promise<{success: boolean, data?: any, error?: string}>}
- */
 export async function getDomainFromVercel(domain) {
   if (!VERCEL_ACCESS_TOKEN || !VERCEL_PROJECT_ID) {
     return createVercelError(

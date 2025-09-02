@@ -16,6 +16,7 @@ export async function GET() {
       where: {
         userId: session.user.id,
         isTemplate: true,
+        published: true, // Only show published templates
       },
       orderBy: {
         createdAt: "desc",

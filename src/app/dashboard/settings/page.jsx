@@ -1,15 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Container from "@/components/ui/Container";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const router = useRouter();
 
   const settingsCategories = [
     {
@@ -132,115 +129,107 @@ export default function SettingsPage() {
 
   return (
     <Container maxWidth="max-w-4xl">
-      <div className="py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Settings
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage your account settings and preferences
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Settings
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Manage your account settings and preferences
+        </p>
+      </div>
 
-        <div className="space-y-8">
-          {settingsCategories.map((category, index) => (
-            <Card key={index}>
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="text-[rgb(var(--primary))] mr-3">
-                    {category.icon}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {category.title}
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                      {category.description}
-                    </p>
-                  </div>
+      {/* Account Info Summary */}
+      {session && (
+        <Card className="mb-8">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Account Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">
+                  {session.user.email}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Name:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">
+                  {session.user.name || "Not set"}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Account Type:
+                </span>
+                <span className="ml-2 text-gray-900 dark:text-white">Free</span>
+              </div>
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Member Since:
+                </span>
+                <span className="ml-2 text-gray-900 dark:text-white">
+                  {new Date(
+                    session.user.createdAt || Date.now(),
+                  ).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      <div className="space-y-8">
+        {settingsCategories.map((category, index) => (
+          <Card key={index}>
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="text-[rgb(var(--primary))] mr-3">
+                  {category.icon}
                 </div>
-
-                <div className="space-y-3">
-                  {category.items.map((item, itemIndex) => (
-                    <div
-                      key={itemIndex}
-                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <div>
-                        <h3 className="font-medium text-gray-900 dark:text-white">
-                          {item.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div>
-                        {item.href ? (
-                          <Button href={item.href} variant="outline" size="sm">
-                            {item.action}
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={item.disabled}>
-                            {item.action}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {category.title}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    {category.description}
+                  </p>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
 
-        {/* Account Info Summary */}
-        {session && (
-          <Card>
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Account Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Email:
-                  </span>
-                  <span className="ml-2 text-gray-900 dark:text-white">
-                    {session.user.email}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Name:
-                  </span>
-                  <span className="ml-2 text-gray-900 dark:text-white">
-                    {session.user.name || "Not set"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Account Type:
-                  </span>
-                  <span className="ml-2 text-gray-900 dark:text-white">
-                    Free
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Member Since:
-                  </span>
-                  <span className="ml-2 text-gray-900 dark:text-white">
-                    {new Date(
-                      session.user.createdAt || Date.now(),
-                    ).toLocaleDateString()}
-                  </span>
-                </div>
+              <div className="space-y-3">
+                {category.items.map((item, itemIndex) => (
+                  <div
+                    key={itemIndex}
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div>
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div>
+                      {item.href ? (
+                        <Button href={item.href} variant="outline" size="sm">
+                          {item.action}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={item.disabled}>
+                          {item.action}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </Card>
-        )}
+        ))}
       </div>
     </Container>
   );

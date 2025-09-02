@@ -3,21 +3,6 @@
 import React from "react";
 import Button from "@/components/ui/Button";
 
-/**
- * A card component for displaying website information in the dashboard
- *
- * @param {Object} website - The website data object
- * @param {string} website.id - Website ID
- * @param {string} website.name - Website name
- * @param {string} website.description - Website description
- * @param {boolean} website.published - Whether the website is published
- * @param {string} website.updatedAt - Last update timestamp
- * @param {string} website.thumbnail - Optional thumbnail URL
- * @param {function} onEdit - Optional edit handler
- * @param {function} onManage - Optional manage handler
- * @param {function} onDelete - Optional delete handler
- * @param {function} onPreview - Optional preview handler
- */
 export default function WebsiteCard({
   website,
   onEdit,
@@ -25,6 +10,8 @@ export default function WebsiteCard({
   onPages,
   onDelete,
   onPreview,
+  onViewLive,
+  onDuplicate,
   className = "",
 }) {
   if (!website) return null;
@@ -49,6 +36,16 @@ export default function WebsiteCard({
   const handlePreview = e => {
     e.stopPropagation();
     if (onPreview) onPreview(website.id);
+  };
+
+  const handleViewLive = e => {
+    e.stopPropagation();
+    if (onViewLive) onViewLive(website.id);
+  };
+
+  const handleDuplicate = e => {
+    e.stopPropagation();
+    if (onDuplicate) onDuplicate(website.id);
   };
 
   // Format date for display
@@ -76,11 +73,18 @@ export default function WebsiteCard({
           website.name.charAt(0).toUpperCase()
         )}
 
-        {website.published && (
-          <div className="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full">
-            Published
-          </div>
-        )}
+        <div className="absolute top-2 right-2 flex gap-2">
+          {website.published && (
+            <div className="px-2 py-1 bg-green-500 text-white text-xs rounded-full">
+              Published
+            </div>
+          )}
+          {website.isTemplate && (
+            <div className="px-2 py-1 bg-purple-500 text-white text-xs rounded-full">
+              Template
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="p-4">
@@ -94,14 +98,15 @@ export default function WebsiteCard({
 
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
           <span>Last updated: {formatDate(website.updatedAt)}</span>
-          <span
-            className={`px-2 py-1 rounded-full ${
-              website.published
-                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-            }`}>
-            {website.published ? "Published" : "Draft"}
-          </span>
+          <div className="flex gap-2">
+            <span
+              className={`px-2 py-1 rounded-full ${
+                !website.published &&
+                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+              }`}>
+              {!website.published && "Draft"}
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 justify-between">
@@ -162,6 +167,50 @@ export default function WebsiteCard({
                 />
               </svg>
               Preview
+            </Button>
+          )}
+
+          {website.published && onViewLive && (
+            <Button
+              onClick={handleViewLive}
+              variant="primary"
+              size="sm"
+              className="flex-1">
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+              Live
+            </Button>
+          )}
+
+          {onDuplicate && (
+            <Button
+              onClick={handleDuplicate}
+              variant="outline"
+              size="sm"
+              className="flex-1">
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              Duplicate
             </Button>
           )}
 

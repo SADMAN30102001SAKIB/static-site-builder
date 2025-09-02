@@ -152,6 +152,14 @@ export async function PATCH(request, { params }) {
         .replace(/^-|-$/g, "");
     }
 
+    // Auto-unshare template if website is being unpublished
+    if (published === false && website.isTemplate && website.published) {
+      updateData.isTemplate = false;
+      updateData.templateDescription = null;
+      updateData.templateTags = null;
+      console.log(`Auto-unsharing template for website ${id} due to unpublish`);
+    }
+
     const updatedWebsite = await prisma.website.update({
       where: { id },
       data: updateData,

@@ -1,18 +1,7 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 
-/**
- * A statistics card component for the dashboard
- * 
- * @param {string} title - The title of the stat card
- * @param {string|number} value - The main value to display
- * @param {string} description - Optional description text
- * @param {React.ReactNode} icon - Optional icon to display
- * @param {string} trend - Optional trend indicator ('up', 'down', or 'neutral')
- * @param {string} trendValue - Optional trend value text (e.g. "15%")
- * @param {string} bgColor - Optional background color class
- */
 export default function StatCard({
   title,
   value,
@@ -20,28 +9,30 @@ export default function StatCard({
   icon,
   trend,
   trendValue,
-  bgColor = "bg-white dark:bg-gray-800"
+  bgColor = "bg-white dark:bg-gray-800",
 }) {
   // Determine trend styling
   const trendStyles = {
     up: {
-      wrapper: "text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30",
-      icon: "text-green-500 dark:text-green-400"
+      wrapper:
+        "text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30",
+      icon: "text-green-500 dark:text-green-400",
     },
     down: {
       wrapper: "text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30",
-      icon: "text-red-500 dark:text-red-400"
+      icon: "text-red-500 dark:text-red-400",
     },
     neutral: {
       wrapper: "text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-700",
-      icon: "text-gray-500 dark:text-gray-400"
-    }
+      icon: "text-gray-500 dark:text-gray-400",
+    },
   };
 
   const trendStyle = trend ? trendStyles[trend] : trendStyles.neutral;
 
   return (
-    <div className={`rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 ${bgColor} p-5`}>
+    <div
+      className={`rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 ${bgColor} p-5`}>
       <div className="flex justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -52,12 +43,11 @@ export default function StatCard({
               {value}
             </p>
             {trend && trendValue && (
-              <span className={`ml-2 text-xs font-medium ${trendStyle.wrapper} px-2 py-0.5 rounded-full`}>
-                {trend === 'up' && (
-                  <span className="inline-block mr-1">↑</span>
-                )}
-                {trend === 'down' && (
-                  <span className="inline-block mr-1">↓</span> 
+              <span
+                className={`ml-2 text-xs font-medium ${trendStyle.wrapper} px-2 py-0.5 rounded-full`}>
+                {trend === "up" && <span className="inline-block mr-1">↑</span>}
+                {trend === "down" && (
+                  <span className="inline-block mr-1">↓</span>
                 )}
                 {trendValue}
               </span>

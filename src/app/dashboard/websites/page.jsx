@@ -79,6 +79,39 @@ export default function WebsitesPage() {
     window.open(`/preview/${id}`, "_blank");
   };
 
+  const handleViewLiveWebsite = id => {
+    const website = websites.find(w => w.id === id);
+    if (website && website.slug) {
+      window.open(`/site/${website.slug}`, "_blank");
+    }
+  };
+
+  const handleDuplicateWebsite = async id => {
+    try {
+      const response = await fetch("/api/websites/duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteId: id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to duplicate website");
+      }
+
+      const data = await response.json();
+
+      // Refresh the websites list to show the new duplicate
+      setWebsites(prev => [...prev, data.website]);
+
+      // Optional: Show success message
+      console.log("Website duplicated successfully:", data.website.name);
+    } catch (error) {
+      console.error("Error duplicating website:", error);
+      alert("Failed to duplicate website. Please try again.");
+    }
+  };
+
   return (
     <Container maxWidth="max-w-7xl">
       <div className="flex items-center justify-between mb-8">
@@ -157,7 +190,7 @@ export default function WebsitesPage() {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {websites.map(website => (
             <WebsiteCard
               key={website.id}
@@ -166,6 +199,8 @@ export default function WebsitesPage() {
               onManage={handleManageWebsite}
               onPages={handlePagesWebsite}
               onPreview={handlePreviewWebsite}
+              onViewLive={handleViewLiveWebsite}
+              onDuplicate={handleDuplicateWebsite}
             />
           ))}
         </div>

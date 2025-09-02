@@ -48,6 +48,25 @@ export async function POST(request) {
       );
     }
 
+    // Check if website has a published home page
+    const publishedHomePage = await prisma.page.findFirst({
+      where: {
+        websiteId: websiteId,
+        isHomePage: true,
+        published: true,
+      },
+    });
+
+    if (!publishedHomePage) {
+      return NextResponse.json(
+        {
+          message:
+            "Website must have a published home page before sharing as template",
+        },
+        { status: 400 },
+      );
+    }
+
     if (website.isTemplate) {
       return NextResponse.json(
         { message: "Website is already shared as a template" },

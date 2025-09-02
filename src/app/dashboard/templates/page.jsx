@@ -95,36 +95,6 @@ export default function Templates() {
     }
   };
 
-  const handleShareAsTemplate = async websiteId => {
-    try {
-      const response = await fetch("/api/templates/share", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ websiteId }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to share as template");
-      }
-
-      toast({
-        title: "Template Shared Successfully!",
-        description: "Website shared as template successfully!",
-        variant: "success",
-      });
-      fetchMyTemplates();
-      fetchTemplates();
-    } catch (err) {
-      console.error("Error sharing as template:", err);
-      toast({
-        title: "Failed to Share Template",
-        description: err.message || "Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleRemoveFromTemplates = async websiteId => {
     try {
       const response = await fetch("/api/templates/unshare", {
@@ -286,7 +256,7 @@ export default function Templates() {
                           variant="outline"
                           size="sm"
                           className="flex-1">
-                          Preview
+                          View
                         </Button>
                         <Button
                           onClick={() => handleForkTemplate(template.id)}
@@ -310,7 +280,6 @@ export default function Templates() {
         {activeTab === "my-templates" && session && (
           <MyTemplatesTab
             myTemplates={myTemplates}
-            onShareAsTemplate={handleShareAsTemplate}
             onRemoveFromTemplates={handleRemoveFromTemplates}
             onTemplatesChanged={() => {
               fetchTemplates();
@@ -326,7 +295,6 @@ export default function Templates() {
 
 function MyTemplatesTab({
   myTemplates,
-  onShareAsTemplate,
   onRemoveFromTemplates,
   onTemplatesChanged,
   toast,
@@ -566,7 +534,7 @@ function MyTemplatesTab({
                         target="_blank"
                         variant="outline"
                         size="sm">
-                        Preview
+                        View
                       </Button>
                       <Button
                         onClick={() => handleShareClick(website)}

@@ -78,12 +78,44 @@ export default function Dashboard() {
     window.open(`/preview/${id}`, "_blank");
   };
 
+  const handleViewLiveWebsite = id => {
+    window.open(`/site/${websites.find(w => w.id === id)?.slug}`, "_blank");
+  };
+
+  const handleDuplicateWebsite = async id => {
+    try {
+      const response = await fetch("/api/websites/duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ websiteId: id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to duplicate website");
+      }
+
+      const data = await response.json();
+
+      // Refresh the websites list to show the new duplicate
+      setWebsites(prev => [...prev, data.website]);
+
+      // Optional: Show success message (you could add toast here)
+      console.log("Website duplicated successfully:", data.website.name);
+    } catch (error) {
+      console.error("Error duplicating website:", error);
+      // Optional: Show error message (you could add toast here)
+      alert("Failed to duplicate website. Please try again.");
+    }
+  };
+
   // Calculate real statistics
   const totalPages = websites.reduce(
     (sum, website) => sum + (website.pages?.length || 0),
     0,
   );
   const publishedWebsites = websites.filter(w => w.published).length;
+  const templateCount = websites.filter(w => w.isTemplate).length;
 
   return (
     <Container maxWidth="max-w-6xl">
@@ -153,11 +185,11 @@ export default function Dashboard() {
           }
         />
         <StatCard
-          title="Draft"
-          value={(websites.length - publishedWebsites).toString()}
+          title="Templates"
+          value={templateCount.toString()}
           icon={
             <svg
-              className="h-5 w-5 text-yellow-500"
+              className="h-5 w-5 text-purple-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
@@ -165,7 +197,7 @@ export default function Dashboard() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
           }
@@ -175,7 +207,7 @@ export default function Dashboard() {
           value={totalPages.toString()}
           icon={
             <svg
-              className="h-5 w-5 text-purple-500"
+              className="h-5 w-5 text-indigo-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
@@ -191,15 +223,7 @@ export default function Dashboard() {
       </div>
 
       {/* Websites Section */}
-      <Card
-        title="Your Websites"
-        headerAction={
-          websites.length > 0 ? (
-            <Button href="/dashboard/websites" variant="ghost" size="sm">
-              View All
-            </Button>
-          ) : null
-        }>
+      <Card title="Your Websites">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
@@ -253,7 +277,7 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {websites.map(website => (
+              {websites.slice(0, 3).map(website => (
                 <WebsiteCard
                   key={website.id}
                   website={website}
@@ -261,11 +285,13 @@ export default function Dashboard() {
                   onManage={() => handleManageWebsite(website.id)}
                   onPages={() => handlePagesWebsite(website.id)}
                   onPreview={() => handlePreviewWebsite(website.id)}
+                  onViewLive={() => handleViewLiveWebsite(website.id)}
+                  onDuplicate={() => handleDuplicateWebsite(website.id)}
                 />
               ))}
             </div>
 
-            {websites.length > 6 && (
+            {websites.length > 3 && (
               <div className="flex justify-center mt-6">
                 <Button href="/dashboard/websites" variant="ghost">
                   View All Websites
@@ -275,91 +301,6 @@ export default function Dashboard() {
           </div>
         )}
       </Card>
-
-      {/* Quick Actions */}
-      {websites.length > 0 && (
-        <Card title="Quick Actions" className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button
-              href="/dashboard/websites/new"
-              variant="outline"
-              className="flex items-center justify-center p-4 h-auto">
-              <div className="text-center">
-                <svg
-                  className="w-8 h-8 mx-auto mb-2 text-blue-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                <span className="font-medium">Create New Website</span>
-                <p className="text-sm text-gray-500 mt-1">
-                  Start a new project
-                </p>
-              </div>
-            </Button>
-
-            <Button
-              href="/dashboard/websites"
-              variant="outline"
-              className="flex items-center justify-center p-4 h-auto">
-              <div className="text-center">
-                <svg
-                  className="w-8 h-8 mx-auto mb-2 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"
-                  />
-                </svg>
-                <span className="font-medium">Manage Websites</span>
-                <p className="text-sm text-gray-500 mt-1">
-                  View and edit existing sites
-                </p>
-              </div>
-            </Button>
-
-            <Button
-              href="/dashboard/profile"
-              variant="outline"
-              className="flex items-center justify-center p-4 h-auto">
-              <div className="text-center">
-                <svg
-                  className="w-8 h-8 mx-auto mb-2 text-purple-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                <span className="font-medium">Profile Settings</span>
-                <p className="text-sm text-gray-500 mt-1">
-                  Update your account
-                </p>
-              </div>
-            </Button>
-          </div>
-        </Card>
-      )}
     </Container>
   );
 }
