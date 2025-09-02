@@ -309,7 +309,7 @@ export default function WebsiteDetails({ params }) {
             </svg>
             Back
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {isEditing ? (
               <Input
                 value={editedName}
@@ -318,7 +318,7 @@ export default function WebsiteDetails({ params }) {
                 placeholder="Website name"
               />
             ) : (
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
                 {website.name}
               </h1>
             )}
@@ -327,7 +327,7 @@ export default function WebsiteDetails({ params }) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsEditing(true)}
-                className="p-1 h-8 w-8">
+                className="p-1 h-8 w-8 flex-shrink-0">
                 <svg
                   className="w-4 h-4"
                   fill="none"
