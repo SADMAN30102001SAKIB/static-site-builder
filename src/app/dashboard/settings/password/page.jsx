@@ -139,6 +139,7 @@ export default function PasswordPage() {
               label="Current Password"
               name="currentPassword"
               type="password"
+              autoComplete="current-password"
               value={values.currentPassword}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -153,6 +154,7 @@ export default function PasswordPage() {
               label="New Password"
               name="newPassword"
               type="password"
+              autoComplete="new-password"
               value={values.newPassword}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -168,6 +170,7 @@ export default function PasswordPage() {
               label="Confirm New Password"
               name="confirmPassword"
               type="password"
+              autoComplete="new-password"
               value={values.confirmPassword}
               onChange={handleChange}
               onBlur={handleBlur}
