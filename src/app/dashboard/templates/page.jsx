@@ -209,11 +209,11 @@ export default function Templates() {
                   <Card key={template.id} className="overflow-hidden">
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                        <div className="flex-1 min-w-0 pr-4">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 truncate">
                             {template.name}
                           </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                             by {template.user.name || template.user.email}
                           </p>
                         </div>
@@ -464,9 +464,11 @@ function MyTemplatesTab({
             {sharedTemplates.map(template => (
               <Card key={template.id}>
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                    {template.name}
-                  </h3>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 truncate">
+                      {template.name}
+                    </h3>
+                  </div>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
                     {template.forkCount} forks
                   </p>
