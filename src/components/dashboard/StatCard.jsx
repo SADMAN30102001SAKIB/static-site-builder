@@ -6,6 +6,7 @@ export default function StatCard({
   title,
   value,
   description,
+  subtitle,
   icon,
   trend,
   trendValue,
@@ -58,6 +59,7 @@ export default function StatCard({
               {description}
             </p>
           )}
+          {subtitle && <div className="mt-1">{subtitle}</div>}
         </div>
         {icon && (
           <div className="rounded-md bg-gray-100 dark:bg-gray-700 p-2 flex items-center justify-center">

@@ -15,6 +15,12 @@ model User {
   password      String?
   image         String?
   bio           String?
+  
+  // Billing fields for one-time payments
+  stripeCustomerId       String?   @unique
+  plan                   Plan      @default(FREE)
+  publishedWebsiteCount  Int       @default(0)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -106,4 +112,9 @@ model Component {
   parent     Component?  @relation("ComponentToComponent", fields: [parentId], references: [id])
   children   Component[] @relation("ComponentToComponent")
   page       Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+}
+
+enum Plan {
+  FREE
+  PRO
 }

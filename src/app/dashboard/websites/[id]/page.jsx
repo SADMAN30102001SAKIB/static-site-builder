@@ -9,6 +9,7 @@ import StatCard from "@/components/dashboard/StatCard";
 import Input from "@/components/ui/Input";
 import { useToast } from "@/hooks/use-toast";
 import { openLiveSiteOptimized } from "@/lib/siteUrls";
+import UpgradePrompt from "@/components/billing/UpgradePrompt";
 
 export default function WebsiteDetails({ params }) {
   const router = useRouter();
@@ -26,6 +27,8 @@ export default function WebsiteDetails({ params }) {
   const [editedDescription, setEditedDescription] = useState("");
   const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeLimitInfo, setUpgradeLimitInfo] = useState(null);
 
   useEffect(() => {
     async function fetchWebsiteData() {
@@ -80,19 +83,48 @@ export default function WebsiteDetails({ params }) {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
+        // Check if it's a publishing limit error
+        if (
+          response.status === 402 &&
+          data.error === "PUBLISHING_LIMIT_REACHED"
+        ) {
+          setUpgradeLimitInfo({
+            currentUsage: data.currentUsage,
+            limit: data.limit,
+            plan: data.plan,
+          });
+          setShowUpgradePrompt(true);
+          return;
+        }
+
         throw new Error(
-          website.published
-            ? "Failed to unpublish website"
-            : "Failed to publish website",
+          data.message ||
+            (website.published
+              ? "Failed to unpublish website"
+              : "Failed to publish website"),
         );
       }
 
-      const data = await response.json();
       setWebsite(prev => ({ ...prev, published: !prev.published }));
+
+      toast({
+        title: website.published ? "Website unpublished" : "Website published",
+        description: website.published
+          ? "Your website is no longer visible to the public"
+          : "Your website is now live and accessible to everyone",
+        type: "success",
+      });
     } catch (err) {
       console.error("Error publishing website:", err);
       setError(err.message);
+      toast({
+        title: "Error",
+        description: err.message,
+        type: "error",
+      });
     } finally {
       setIsPublishing(false);
     }
@@ -150,7 +182,6 @@ export default function WebsiteDetails({ params }) {
         }
       }
 
-      const data = await response.json();
       setWebsite(prev => ({
         ...prev,
         name: editedName,
@@ -839,6 +870,14 @@ export default function WebsiteDetails({ params }) {
           </div>
         </div>
       )}
+
+      {/* Upgrade Prompt Modal */}
+      <UpgradePrompt
+        isOpen={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        currentUsage={upgradeLimitInfo?.currentUsage}
+        limit={upgradeLimitInfo?.limit}
+      />
     </Container>
   );
 }

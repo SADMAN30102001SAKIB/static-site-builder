@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { getPlanLimits } from "@/lib/stripe";
 
 // Get a single website with its pages
 export async function GET(request, { params }) {
@@ -137,6 +138,33 @@ export async function PATCH(request, { params }) {
       }
     }
 
+    // Check publishing limits if trying to publish
+    if (published === true && !website.published) {
+      // Get user with billing info to check limits
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          plan: true,
+          publishedWebsiteCount: true,
+        },
+      });
+
+      const planLimits = getPlanLimits(user);
+
+      if (!planLimits.canPublish) {
+        return NextResponse.json(
+          {
+            message: "Publishing limit reached",
+            error: "PUBLISHING_LIMIT_REACHED",
+            currentUsage: planLimits.publishedCount,
+            limit: planLimits.publishLimit,
+            plan: user.plan || "FREE",
+          },
+          { status: 402 }, // Payment Required
+        );
+      }
+    }
+
     // Update the website
     const updateData = {
       description:
@@ -164,6 +192,34 @@ export async function PATCH(request, { params }) {
       where: { id },
       data: updateData,
     });
+
+    // Update user's published website count if publishing status changed
+    if (published !== undefined && published !== website.published) {
+      if (published) {
+        // Publishing: increment count
+        await prisma.user.update({
+          where: { id: session.user.id },
+          data: { publishedWebsiteCount: { increment: 1 } },
+        });
+      } else {
+        // Unpublishing: decrement count (but don't go below 0)
+        await prisma.user.update({
+          where: { id: session.user.id },
+          data: {
+            publishedWebsiteCount: {
+              decrement: 1,
+            },
+          },
+        });
+
+        // Ensure count never goes negative
+        await prisma.$executeRaw`
+          UPDATE "User" 
+          SET "publishedWebsiteCount" = GREATEST("publishedWebsiteCount", 0) 
+          WHERE id = ${session.user.id}
+        `;
+      }
+    }
 
     return NextResponse.json(updatedWebsite);
   } catch (error) {
@@ -237,6 +293,21 @@ export async function DELETE(request, { params }) {
     await prisma.website.delete({
       where: { id },
     });
+
+    // Update user's published website count if deleted website was published
+    if (website.published) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { publishedWebsiteCount: { decrement: 1 } },
+      });
+
+      // Ensure count never goes negative
+      await prisma.$executeRaw`
+        UPDATE "User" 
+        SET "publishedWebsiteCount" = GREATEST("publishedWebsiteCount", 0) 
+        WHERE id = ${session.user.id}
+      `;
+    }
 
     return NextResponse.json({ message: "Website deleted successfully" });
   } catch (error) {

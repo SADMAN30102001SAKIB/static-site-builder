@@ -7,44 +7,54 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import WebsiteCard from "@/components/dashboard/WebsiteCard";
 import StatCard from "@/components/dashboard/StatCard";
+import PlanBadge from "@/components/billing/PlanBadge";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const [websites, setWebsites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [billingInfo, setBillingInfo] = useState(null);
 
   useEffect(() => {
-    async function fetchWebsites() {
+    async function fetchData() {
       try {
         setIsLoading(true);
         setError("");
 
-        const response = await fetch("/api/websites");
+        // Fetch websites and billing info in parallel
+        const [websitesResponse, billingResponse] = await Promise.all([
+          fetch("/api/websites"),
+          fetch("/api/billing/info"),
+        ]);
 
-        if (!response.ok) {
+        if (!websitesResponse.ok) {
           throw new Error("Failed to fetch websites");
         }
 
-        const data = await response.json();
-        const websiteData = data.websites || [];
-        setWebsites(websiteData);
+        const websiteData = await websitesResponse.json();
+        setWebsites(websiteData.websites || []);
+
+        // Billing info is optional, don't fail if it errors
+        if (billingResponse.ok) {
+          const billingData = await billingResponse.json();
+          setBillingInfo(billingData);
+        }
       } catch (err) {
-        console.error("Error fetching websites:", err);
+        console.error("Error fetching data:", err);
         setError("Failed to load your websites. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     }
 
-    // Only fetch websites if the user is authenticated AND we don't have data yet
-    if (session && websites.length === 0) {
-      fetchWebsites();
+    // Only fetch data if the user is authenticated
+    if (session) {
+      fetchData();
     } else if (status !== "loading") {
-      // If not loading and no session, stop loading
       setIsLoading(false);
     }
-  }, [session, status]); // Remove websites from dependencies to prevent refetching
+  }, [session, status]);
 
   const handleEditWebsite = async id => {
     // Find the first page for this website
@@ -168,7 +178,11 @@ export default function Dashboard() {
         />
         <StatCard
           title="Published"
-          value={publishedWebsites.toString()}
+          value={`${publishedWebsites}${
+            billingInfo?.usage?.publishLimit !== Infinity
+              ? ` / ${billingInfo.usage.publishLimit}`
+              : ""
+          }`}
           icon={
             <svg
               className="h-5 w-5 text-green-500"
@@ -183,10 +197,39 @@ export default function Dashboard() {
               />
             </svg>
           }
+          subtitle={
+            billingInfo?.usage?.publishLimit !== Infinity &&
+            !billingInfo?.usage?.canPublish ? (
+              <span className="text-orange-600 dark:text-orange-400 text-xs font-medium">
+                Limit reached
+              </span>
+            ) : billingInfo?.usage?.remainingPublishes !== undefined &&
+              billingInfo?.usage?.remainingPublishes !== Infinity ? (
+              <span className="text-gray-500 text-xs">
+                {billingInfo.usage.remainingPublishes} remaining
+              </span>
+            ) : null
+          }
         />
         <StatCard
-          title="Templates"
-          value={templateCount.toString()}
+          title="Plan"
+          value={
+            <div className="flex items-center gap-2">
+              <PlanBadge plan={billingInfo?.user?.plan || "FREE"} />
+              {billingInfo?.user?.plan === "PRO" && (
+                <svg
+                  className="h-4 w-4 text-green-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </div>
+          }
           icon={
             <svg
               className="h-5 w-5 text-purple-500"
@@ -197,17 +240,30 @@ export default function Dashboard() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
               />
             </svg>
           }
+          subtitle={
+            billingInfo?.user?.plan === "FREE" ? (
+              <Button
+                href="/dashboard/billing"
+                size="sm"
+                variant="outline"
+                className="text-xs mt-1">
+                Upgrade to Pro
+              </Button>
+            ) : (
+              <span className="text-gray-500 text-xs">Lifetime access</span>
+            )
+          }
         />
         <StatCard
-          title="Total Pages"
-          value={totalPages.toString()}
+          title="Templates"
+          value={templateCount.toString()}
           icon={
             <svg
-              className="h-5 w-5 text-indigo-500"
+              className="h-5 w-5 text-orange-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
@@ -215,7 +271,7 @@ export default function Dashboard() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
           }
