@@ -13,12 +13,13 @@ const stripePromise = loadStripe(
 
 export default function BillingPage() {
   const [billingInfo, setBillingInfo] = useState(null);
+  const [websites, setWebsites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
-    fetchBillingInfo();
+    fetchData();
 
     // Check for success/cancel messages in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -36,18 +37,35 @@ export default function BillingPage() {
     }
   }, []);
 
-  const fetchBillingInfo = async () => {
+  const fetchData = async () => {
     try {
-      const response = await fetch("/api/billing/info");
-      const data = await response.json();
+      setLoading(true);
 
-      if (response.ok) {
-        setBillingInfo(data);
+      // Fetch both billing info and websites in parallel
+      const [billingResponse, websitesResponse] = await Promise.all([
+        fetch("/api/billing/info"),
+        fetch("/api/websites"),
+      ]);
+
+      // Handle billing info
+      if (billingResponse.ok) {
+        const billingData = await billingResponse.json();
+        setBillingInfo(billingData);
       } else {
-        throw new Error(data.error || "Failed to fetch billing info");
+        const billingError = await billingResponse.json();
+        throw new Error(billingError.error || "Failed to fetch billing info");
+      }
+
+      // Handle websites
+      if (websitesResponse.ok) {
+        const websitesData = await websitesResponse.json();
+        setWebsites(websitesData.websites || []);
+      } else {
+        console.warn("Failed to fetch websites for usage count");
+        setWebsites([]);
       }
     } catch (error) {
-      console.error("Error fetching billing info:", error);
+      console.error("Error fetching data:", error);
       setMessage({ type: "error", text: "Failed to load billing information" });
     } finally {
       setLoading(false);
@@ -160,7 +178,15 @@ export default function BillingPage() {
                   Published Websites
                 </span>
                 <span className="font-medium">
-                  {billingInfo.usage.publishedWebsites} /{" "}
+                  {(() => {
+                    const publishedCount = websites.filter(
+                      site => site.published,
+                    ).length;
+                    console.log("Websites state:", websites);
+                    console.log("Published count:", publishedCount);
+                    return publishedCount;
+                  })()}{" "}
+                  /{" "}
                   {billingInfo.usage.publishLimit === Infinity
                     ? "∞"
                     : billingInfo.usage.publishLimit}
@@ -174,7 +200,7 @@ export default function BillingPage() {
                     style={{
                       width: `${Math.min(
                         100,
-                        (billingInfo.usage.publishedWebsites /
+                        (websites.filter(site => site.published).length /
                           billingInfo.usage.publishLimit) *
                           100,
                       )}%`,

@@ -40,9 +40,15 @@ export default function StatCard({
             {title}
           </p>
           <div className="flex items-baseline mt-1">
-            <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-              {value}
-            </p>
+            {typeof value === "string" || typeof value === "number" ? (
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                {value}
+              </p>
+            ) : (
+              <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                {value}
+              </div>
+            )}
             {trend && trendValue && (
               <span
                 className={`ml-2 text-xs font-medium ${trendStyle.wrapper} px-2 py-0.5 rounded-full`}>
