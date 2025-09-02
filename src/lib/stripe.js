@@ -60,13 +60,3 @@ export function getPlanLimits(user) {
           ),
   };
 }
-
-/**
- * Format currency for display
- */
-export function formatPrice(priceInCents) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(priceInCents / 100);
-}

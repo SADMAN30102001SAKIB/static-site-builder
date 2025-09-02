@@ -5,7 +5,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import Container from "@/components/ui/Container";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import { formatPrice } from "@/lib/stripe";
+import { formatPrice } from "@/lib/utils";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,

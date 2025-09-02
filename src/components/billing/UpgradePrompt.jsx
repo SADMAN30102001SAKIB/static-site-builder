@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import Button from "@/components/ui/Button";
-import { formatPrice, STRIPE_CONFIG } from "@/lib/stripe";
+import { formatPrice, CLIENT_STRIPE_CONFIG } from "@/lib/utils";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
@@ -104,7 +104,7 @@ export default function UpgradePrompt({
               Pro Plan Benefits
             </h4>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-              {formatPrice(STRIPE_CONFIG.PLANS.PRO.price)}{" "}
+              {formatPrice(CLIENT_STRIPE_CONFIG.PLANS.PRO.price)}{" "}
               <span className="text-sm text-gray-500">one-time</span>
             </div>
             <div className="text-sm text-green-600 dark:text-green-400 font-medium mb-3">
