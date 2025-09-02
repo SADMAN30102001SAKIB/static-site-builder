@@ -178,15 +178,7 @@ export default function BillingPage() {
                   Published Websites
                 </span>
                 <span className="font-medium">
-                  {(() => {
-                    const publishedCount = websites.filter(
-                      site => site.published,
-                    ).length;
-                    console.log("Websites state:", websites);
-                    console.log("Published count:", publishedCount);
-                    return publishedCount;
-                  })()}{" "}
-                  /{" "}
+                  {websites.filter(site => site.published).length} /{" "}
                   {billingInfo.usage.publishLimit === Infinity
                     ? "∞"
                     : billingInfo.usage.publishLimit}
