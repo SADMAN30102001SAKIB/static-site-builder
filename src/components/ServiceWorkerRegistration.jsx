@@ -6,11 +6,13 @@ export default function ServiceWorkerRegistration() {
   useEffect(() => {
     // Check browser compatibility more thoroughly
     const isBraveOrChromium = /Chrome|Chromium|Brave/.test(navigator.userAgent);
-    const isSecureContext = window.isSecureContext || location.protocol === 'https:';
-    
+    const isSecureContext =
+      window.isSecureContext || location.protocol === "https:";
+
     console.log("SW Registration Check:", {
       hasNavigator: typeof navigator !== "undefined",
-      hasServiceWorker: typeof navigator !== "undefined" && "serviceWorker" in navigator,
+      hasServiceWorker:
+        typeof navigator !== "undefined" && "serviceWorker" in navigator,
       nodeEnv: process.env.NODE_ENV,
       swEnabled: process.env.NEXT_PUBLIC_SW_ENABLED,
       isBraveOrChromium,
@@ -80,7 +82,7 @@ export default function ServiceWorkerRegistration() {
       };
 
       // Register after a small delay for better Brave compatibility
-      if (document.readyState === 'complete') {
+      if (document.readyState === "complete") {
         setTimeout(registerSW, 100);
       } else {
         window.addEventListener("load", () => setTimeout(registerSW, 100));

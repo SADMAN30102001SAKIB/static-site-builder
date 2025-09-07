@@ -20,7 +20,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   // Enhanced filtering for better Brave compatibility
   const url = new URL(event.request.url);
-  
+
   // Only handle GET requests for HTML pages from same origin
   if (
     event.request.method !== "GET" ||
