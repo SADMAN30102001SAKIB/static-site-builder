@@ -100,9 +100,9 @@ Static Site Builder is an easy to use modern, feature-rich platform that empower
 ### Prerequisites
 
 - Node.js 18.0.0 or higher
-- PostgreSQL database (local or cloud based like neonDB) & add the `Database Connection URI` in the environment variable (in the `.env` file).
-- Vercel account for deployment & after deployment add these (`VERCEL_ACCESS_TOKEN`, `VERCEL_PROJECT_ID` & `VERCEL_TEAM_ID`) as environment variables if you want the custom domain system to work.
-- Stripe account for payment processing & add these environment variables (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KE`, `STRIPE_PRO_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`)
+- PostgreSQL database (local or cloud based like neonDB) & add the `Database Connection URI` as environment variable in the `.env` file (you have to make this file if you don’t have it. check the `.evn.example` file for reference).
+- Vercel account for deployment & after deployment add these (`VERCEL_ACCESS_TOKEN`, `VERCEL_PROJECT_ID` & `VERCEL_TEAM_ID`) as environment variables if you want the custom domain system to work. You can get them in your vercel account.
+- Stripe account for payment processing & add these environment variables (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KE`, `STRIPE_PRO_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`). You can get them in your stripe account.
 - Git for version control
 
 ### Installation Steps
@@ -132,7 +132,7 @@ pnpm install
 DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
 NEXTAUTH_SECRET="your-secret-key-here" # any random string
 
-# App URL (only for production: add your deplyed app's URL. Optional for localhost)
+# App URL (only for production: add your deployed app's URL. Optional for localhost)
 # NEXT_PUBLIC_APP_URL="https://subdomain.vercel.com"
 # NEXTAUTH_URL="https://subdomain.vercel.com"
 
@@ -213,7 +213,7 @@ pnpm dev
 
 #### 6. Progressive Web App Features
 
-- **Service Worker**: When offline, instead of browser's default **No Internet Connection** page, it shows a custom **Offline Page**.
+- **Service Worker**: When offline, instead of the browser's default **No Internet Connection** page, it shows a custom **Offline Page**.
 - **Performance Optimization**: Edge runtime middleware for fast loading for static sites.
 
 ### Project Outline
@@ -271,7 +271,7 @@ Built-in components organized by categories:
 
 ### Current Achievements
 
-The project successfully implements a comprehensive website builder with advanced features like template marketplace and one-time payment model provide unique value propositions in the market.
+The project successfully implements a comprehensive website builder with advanced features like template marketplace and one-time payment model provides unique value propositions in the market.
 
 ### Performance Metrics
 
@@ -327,13 +327,12 @@ The codebase is well-structured, maintainable, and ready for production deployme
 
 ## References
 
-1. Next.js Documentation - https://nextjs.org/docs
-2. React DnD Documentation - https://react-dnd.github.io/react-dnd/
-3. Prisma Documentation - https://www.prisma.io/docs
-4. NextAuth.js Documentation - https://next-auth.js.org/
-5. Stripe API Documentation - https://stripe.com/docs/api
-6. Vercel API Documentation - https://vercel.com/docs/rest-api
-7. Tailwind CSS Documentation - https://tailwindcss.com/docs
-8. PostgreSQL Documentation - https://www.postgresql.org/docs/
-9. PWA Guidelines - https://web.dev/progressive-web-apps/
-10. Web Performance Best Practices - https://web.dev/performance/
+**Md. Sozib Hossain**  
+মোঃ সজিব হোসেন  
+Lecturer
+
+📍 Room No: 116, Academic Building 1 (CSE)  
+📞 Phone: 880-1771905794  
+📧 Email: sozibruet99@gmail.com  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sozib.hossain@cse.ruet.ac.bd  
+🌐 Website: https://www.cse.ruet.ac.bd/md.-sozib-hossain
