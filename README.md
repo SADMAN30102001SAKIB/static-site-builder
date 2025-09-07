@@ -132,7 +132,7 @@ pnpm install
 DATABASE_URL="postgresql://username:password@host:port/database?sslmode=require"
 NEXTAUTH_SECRET="your-secret-key-here" # any random string
 
-# App URL (only for production: add your deployed app's URL. Optional for localhost)
+# App URL (only for production: add your deployed app's URL. it's optional for localhost)
 # NEXT_PUBLIC_APP_URL="https://subdomain.vercel.com"
 # NEXTAUTH_URL="https://subdomain.vercel.com"
 
