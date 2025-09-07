@@ -1,29 +1,46 @@
 // Super simple service worker - just shows offline message when offline
 // No caching - keeps it simple and reliable
+// Enhanced compatibility for Brave browser
+
+console.log("🔧 Service Worker loading...");
 
 // Install event - just skip waiting, no caching
 self.addEventListener("install", event => {
+  console.log("🔧 SW Install event");
   self.skipWaiting();
 });
 
 // Activate event - take control immediately
 self.addEventListener("activate", event => {
+  console.log("🔧 SW Activate event");
   event.waitUntil(self.clients.claim());
 });
 
 // Fetch event - show offline message when network fails
 self.addEventListener("fetch", event => {
-  // Only handle GET requests for HTML pages
+  // Enhanced filtering for better Brave compatibility
+  const url = new URL(event.request.url);
+  
+  // Only handle GET requests for HTML pages from same origin
   if (
     event.request.method !== "GET" ||
-    !event.request.url.startsWith(self.location.origin) ||
+    url.origin !== self.location.origin ||
     !event.request.headers.get("accept")?.includes("text/html")
   ) {
     return;
   }
 
-  // Skip API requests
-  if (event.request.url.includes("/api/")) {
+  // Skip API requests, static assets, and special paths
+  if (
+    url.pathname.includes("/api/") ||
+    url.pathname.includes("/_next/") ||
+    url.pathname.includes("/favicon") ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css") ||
+    url.pathname.endsWith(".png") ||
+    url.pathname.endsWith(".jpg") ||
+    url.pathname.endsWith(".svg")
+  ) {
     return;
   }
 
