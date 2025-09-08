@@ -421,79 +421,7 @@ height="1.7753051181102362in"}
 
 #### Application Navigation Flow
 
-```
-🌐 Static Site Builder
-│
-├── Home (/)
-│   ├── → Login (/login)
-│   └── → Register (/register)
-│
-├── Login (/login)
-│   └── → Dashboard (/dashboard)
-│
-├──  Register (/register)
-│   └── → Dashboard (/dashboard)
-│
-├── Dashboard (/dashboard)
-│   ├── → Websites (/dashboard/websites)
-│   ├── → Templates (/dashboard/templates)
-│   ├── → Domains (/dashboard/domains)
-│   ├── → Billing (/dashboard/billing)
-│   ├── → Profile (/dashboard/profile)
-│   └── → Settings (/dashboard/settings)
-│
-├── Websites (/dashboard/websites)
-│   ├── → Website Details (/dashboard/websites/[id])
-│   └── → New Website (create form)
-│
-├── Website Details (/dashboard/websites/[id])
-│   ├── → Pages (/dashboard/websites/[id]/pages)
-│   ├── → Preview (/preview/[id])
-│   └── → Live Site (/site/[slug])
-│
-├── Pages Management (/dashboard/websites/[id]/pages)
-│   ├── → New Page (/dashboard/websites/[id]/pages/new)
-│   └── → Page Builder (/builder/[id]/pages/[pageId])
-│
-├── New Page (/dashboard/websites/[id]/pages/new)
-│   └── → Page Builder (/builder/[id]/pages/[pageId])
-│
-├── Page Builder (/builder/[id]/pages/[pageId])
-│   ├── → Pages Management (/dashboard/websites/[id]/pages)
-│   ├── → Preview (/preview/[id])
-│   └── → Dashboard (/dashboard)
-│
-├── Templates (/dashboard/templates)
-│   ├── → My Templates (/dashboard/templates/my-templates)
-│   └── → Dashboard (after forking)
-│
-├── My Templates (/dashboard/templates/my-templates)
-│   └── → Templates (/dashboard/templates)
-│
-├── Domains (/dashboard/domains)
-│   └── → Dashboard (/dashboard)
-│
-├── Billing (/dashboard/billing)
-│   └── → Dashboard (/dashboard)
-│
-├── Profile (/dashboard/profile)
-│   └── → Dashboard (/dashboard)
-│
-├── Settings (/dashboard/settings)
-│   ├── → Change Password (/dashboard/settings/password)
-│   └── → Dashboard (/dashboard)
-│
-├── Change Password (/dashboard/settings/password)
-│   └── → Settings (/dashboard/settings)
-│
-├── Preview (/preview/[id])
-│   ├── → Page Builder (/builder/[id]/pages/[pageId])
-│   └── → Website Details (/dashboard/websites/[id])
-│
-└── Live Site (/site/[slug])
-    ├── → Page (/site/[slug]/[pagePath])
-    └── → Homepage (/site/[slug])
-```
+![APP Architecture](./screenshots/appArchi.png)
 
 #### Database Schema
 
@@ -504,14 +432,46 @@ height="1.7753051181102362in"}
 
 #### API Architecture
 
-- **Authentication**: `/api/auth/*` - Login, register, session management
-- **User Management**: `/api/user/*` - Profile, password updates
-- **Websites**: `/api/websites/*` - CRUD operations, publishing
-- **Pages**: `/api/pages/*` - Page management, content
-- **Components**: `/api/components/*` - Builder operations
-- **Templates**: `/api/templates/*` - Marketplace, forking
-- **Domains**: `/api/domains/*` - Custom domain management
-- **Billing**: `/api/billing/*` - Stripe integration, webhooks
+```
+🔌 RESTful API Endpoints
+├── 🔐 Authentication APIs (/api/auth/)
+│   ├── 📝 Registration (/api/auth/register)
+│   └── 🔑 NextAuth Handlers (/api/auth/[...nextauth])
+│
+├── 👤 User Management (/api/user/)
+│   ├── 👤 Profile (/api/user/profile)
+│   └── 🔑 Password (/api/user/password)
+│
+├── 🌐 Website APIs (/api/websites/)
+│   ├── 📋 List/Create (/api/websites)
+│   ├── ⚙️ Individual (/api/websites/[id])
+│   └── 📋 Duplicate (/api/websites/duplicate)
+│
+├── 📄 Page APIs (/api/pages/)
+│   ├── 📋 List/Create (/api/pages)
+│   └── ⚙️ Individual (/api/pages/[id])
+│
+├── 🧱 Component APIs (/api/components/)
+│   ├── ➕ Add (/api/components/add)
+│   ├── ⚙️ Individual (/api/components/[id])
+│   └── 🔄 Reorder (/api/components/reorder)
+│
+├── 🎯 Template APIs (/api/templates/)
+│   ├── 📋 Browse (/api/templates)
+│   ├── 🎯 Share (/api/templates/share)
+│   ├── 🚫 Unshare (/api/templates/unshare)
+│   ├── 🍴 Fork (/api/templates/fork)
+│   └── 📝 My Templates (/api/templates/my-templates)
+│
+├── 🌍 Domain APIs (/api/domains/)
+│   ├── 📋 List/Add (/api/domains)
+│   └── ⚙️ Individual (/api/domains/[domain])
+│
+└── 💳 Billing APIs (/api/billing/)
+    ├── 📊 Info (/api/billing/info)
+    ├── 💰 Checkout (/api/billing/checkout)
+    └── 🔔 Webhook (/api/billing/webhook)
+```
 
 ### Project Implementation:
 
