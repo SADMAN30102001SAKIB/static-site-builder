@@ -21,8 +21,8 @@ importers:
         specifier: ^0.10.0
         version: 0.10.0
       bcryptjs:
-        specifier: ^3.0.2
-        version: 3.0.2
+        specifier: ^3.0.3
+        version: 3.0.3
       next:
         specifier: ^15.5.7
         version: 15.5.7(react-dom@19.2.1(react@19.2.0))(react@19.2.0)
@@ -42,7 +42,7 @@ importers:
         specifier: ^16.0.1
         version: 16.0.1
       react-dom:
-        specifier: ^19.2.1
+        specifier: ^19.2.0
         version: 19.2.1(react@19.2.0)
       stripe:
         specifier: ^18.5.0
@@ -746,8 +746,8 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
-  bcryptjs@3.0.2:
-    resolution: {integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog==}
+  bcryptjs@3.0.3:
+    resolution: {integrity: sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==}
     hasBin: true
 
   binary-extensions@2.3.0:
@@ -2901,7 +2901,7 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  bcryptjs@3.0.2: {}
+  bcryptjs@3.0.3: {}
 
   binary-extensions@2.3.0: {}
 
