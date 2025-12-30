@@ -11,6 +11,7 @@ export default function Card({
   headerAction,
   noPadding = false,
   bordered = true,
+  overflowVisible = false,
   ...props
 }) {
   return (
@@ -18,7 +19,7 @@ export default function Card({
       className={`
         bg-white dark:bg-gray-800 
         rounded-lg shadow-md 
-        overflow-hidden
+        ${!overflowVisible ? 'overflow-hidden' : ''}
         ${bordered ? 'border border-gray-200 dark:border-gray-700' : ''}
         ${className}
       `}

@@ -217,6 +217,7 @@ export default function BillingPage() {
               ([planKey, plan]) => (
                 <Card
                   key={planKey}
+                  overflowVisible={true}
                   className={`relative ${
                     billingInfo.user.plan === planKey
                       ? "ring-2 ring-blue-500 dark:ring-blue-400"
