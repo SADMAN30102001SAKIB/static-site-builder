@@ -18,7 +18,7 @@
     "next-auth": "^4.24.13",
     "next": "^15.5.9",
     "prisma": "^6.19.1",
-    "react": "^19.0.0",
+    "react": "^19.2.3",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.2.3",
