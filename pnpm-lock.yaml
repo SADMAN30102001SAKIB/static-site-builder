@@ -48,8 +48,8 @@ importers:
         specifier: ^18.5.0
         version: 18.5.0(@types/node@20.19.11)
       zustand:
-        specifier: ^5.0.9
-        version: 5.0.9(@types/react@19.1.12)(react@19.2.3)
+        specifier: ^5.0.11
+        version: 5.0.11(@types/react@19.1.12)(react@19.2.3)
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
@@ -2263,8 +2263,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zustand@5.0.9:
-    resolution: {integrity: sha512-ALBtUj0AfjJt3uNRQoL1tL2tMvj6Gp/6e39dnfT6uzpelGru8v1tPOGBzayOWbPJvujM8JojDk3E1LxeFisBNg==}
+  zustand@5.0.11:
+    resolution: {integrity: sha512-fdZY+dk7zn/vbWNCYmzZULHRrss0jx5pPFiOuMZ/5HJN6Yv3u+1Wswy/4MpZEkEGhtNH+pwxZB8OKgUBPzYAGg==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -4695,7 +4695,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zustand@5.0.9(@types/react@19.1.12)(react@19.2.3):
+  zustand@5.0.11(@types/react@19.1.12)(react@19.2.3):
     optionalDependencies:
       '@types/react': 19.1.12
       react: 19.2.3
